@@ -1,0 +1,9 @@
+<div *ngIf="todoItem != null">
+    <h2>{{todoItem.title}} details !</h2>
+    <div><label>id: </label>{{todoItem.id}}</div>
+    <div>
+        <material-input required [(ngModel)]="todoItem.title" placeholder="title" (change)="onChanged()"></material-input>
+        <material-input multiline [(ngModel)]="todoItem.description" label="Enter description" (change)="onChanged()"></material-input>
+    </div>
+    <button (click)="goBack()">Back</button>
+</div>
