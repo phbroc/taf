@@ -58,7 +58,7 @@ function generateRandomString($length = 10) {
 		$nextId = $user."TOKEN";
 		if ($id_db != "") {
 			if ($id_db == $user."TOKEN9") $nextId .= "1";
-			else $nextId .= (int)substr($user, strlen($user)-1, 1)+1;
+			else $nextId .= (int)substr($id_db, strlen($id_db)-1, 1)+1;
 		}
 		else {
 			$nextId .= "1";

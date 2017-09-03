@@ -11,6 +11,7 @@ $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 //$conn->exec("SET CHARACTER SET utf8");      // Sets encoding UTF-8
 $conn->beginTransaction();
 
+
  if ($_SERVER['REQUEST_METHOD'] === 'POST') 
  {
  	$input = file_get_contents('php://input');
@@ -19,15 +20,27 @@ $conn->beginTransaction();
  
  	$jsonObj = json_decode($input);
  	// moment de la synchro
- 	$dayhour_sc = date('Y-m-d H:i:s');
+ 	
+	
+	$token = $jsonObj->token;
+	$dayhour_rq = $jsonObj->dayhour;
+	$user_rq = $jsonObj->user;
+
+
+// lieu pour debuguer 
+// $token = "...";
+// $dayhour_rq = "2017-01-01 12:00:00";
+// $user_rq = "PBD";
+// fin du lieu pour debuguer
+
+
+	$dayhour_sc = date('Y-m-d H:i:s');
  	
  	$result = "[";
  	// pour mémoriser tous ceux qui seront insérer ou mise à jour
 	$proceededIds = "(";
 	
-	$token = $jsonObj->token;
-	$dayhour_rq = $jsonObj->dayhour;
-	$user_rq = $jsonObj->user;
+
 	
 	// test de la validité du token de connexion
 	$data_db = "";
@@ -326,6 +339,8 @@ $conn->beginTransaction();
 				$dayhour_sl = $row->dayhour;
 				$version_sl = $row->version;
 				$data_sl = $row->data;
+				
+				if ($data_sl == "") $data_sl = "{}";
 			
 				$result .= '{"id":"'.$id_sl.'","dayhour":"'.$dayhour_sl.'","version":"'.$version_sl.'","data":'.$data_sl.'},';
 			}
@@ -347,7 +362,7 @@ $conn->beginTransaction();
 	else $result = "[]";
 	
 	echo $result;
-	
+
  }
  else {
  	echo "[]";
