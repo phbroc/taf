@@ -41,7 +41,7 @@ function generateRandomString($length = 10) {
 		$data_new = generateRandomString(20);
 
 		try {
-			$sql = "SELECT id FROM taf WHERE id LIKE'".$user."TOKEN%' ORDER BY id DESC";
+			$sql = "SELECT id FROM taf WHERE id LIKE'".$user."TOKEN%' ORDER BY id DESC LIMIT 1";
 			$select = $conn->query($sql, PDO::FETCH_OBJ);
 			while($row = $select->fetch()) {
 				$id_db = $row->id; 
