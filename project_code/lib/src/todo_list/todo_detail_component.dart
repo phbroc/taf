@@ -1,11 +1,11 @@
-import 'package:angular2/angular2.dart';
 import 'package:angular_components/angular_components.dart';
+import 'package:angular2/angular2.dart';
 import 'package:angular2/platform/common.dart';
 import 'package:angular2/router.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
 import 'todo.dart';
-import 'package:taf/in_memory_data.dart';
+import 'package:taf/in_memory_data_service.dart';
 
 @Component(
   selector: 'todo-detail',
@@ -32,7 +32,7 @@ class TodoDetailComponent implements OnInit {
 
   Future<Null> ngOnInit() async {
     var id = _routeParams.get('id');
-    if (id != null) todoItem = await InMemoryData.giveById(id);
+    if (id != null) todoItem = await InMemoryDataService.giveById(id);
     print("detail..." + todoItem.title);
   }
 

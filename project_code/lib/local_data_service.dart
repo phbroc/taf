@@ -28,8 +28,9 @@ class LocalDataService {
         //print(jsonList[0]['data']['title']);
 
         for(var i=0; i<jsonList.length; i++) {
-          print(jsonList[i]['data']['title']);
-          todoList.add(new Todo(jsonList[i]['id'], jsonList[i]['dayhour'], jsonList[i]['version'], jsonList[i]['data']['title'], jsonList[i]['data']['description']));
+          //print(jsonList[i]);
+          //todoList.add(new Todo(jsonList[i]['id'], jsonList[i]['dayhour'], jsonList[i]['version'], jsonList[i]['data']['title'], jsonList[i]['data']['description'],false));
+          todoList.add(new Todo.fromJson(jsonList[i]));
         }
 
 
@@ -56,5 +57,15 @@ class LocalDataService {
     jsonData += ']';
     localStorage['tafJSON'] = jsonData;
     print("serialisation : " + jsonData);
+  }
+
+  void saveToken(String u, String t) {
+    String key = 'tafTOKEN'+u;
+    localStorage[key] = t;
+  }
+
+  String getToken(String u) {
+    String key = 'tafTOKEN'+u;
+    return localStorage[key];
   }
 }

@@ -1,0 +1,29 @@
+<!-- Components info: https://webdev.dartlang.org/components -->
+<div>
+    <material-input label="Mot de passe..."
+                    autoFocus floatingLabel style="width:80%"
+                    [(ngModel)]="pass"
+                    (keyup.enter)="connect()"
+                    type="password"
+                    [class.hide]="connected" [class.show]="!connected">
+    </material-input>
+
+    <material-fab mini raised
+                  (trigger)="connect()"
+                  [disabled]="pass.isEmpty"
+                  [class.hide]="connected"
+                  [class.show]="!connected"
+                  materialTooltip="Connexion">
+        <glyph icon="lock_open"></glyph>
+    </material-fab>
+
+    <material-fab mini raised
+                  (trigger)="disconnect()"
+                  [class.hide]="!connected"
+                  [class.show]="connected"
+                  materialTooltip="Déconnexion">
+        <glyph icon="lock"></glyph>
+    </material-fab>
+
+
+</div>

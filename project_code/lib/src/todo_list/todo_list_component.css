@@ -4,7 +4,9 @@ ul {
 }
 
 li {
-  line-height: 3em;
+  line-height: 1.3em;
+  position: relative;
+  margin-bottom:0.3em;
 }
 
 li:hover {
@@ -13,13 +15,35 @@ li:hover {
 
 li material-checkbox {
   vertical-align: middle;
+  position: absolute;
 }
 
 li material-fab {
-  float: right;
+  position: relative;
+  /*float: right;*/
   vertical-align: middle;
+}
+
+.thetitle {
+  padding-top: 0.2em;
+  padding-left: 3em;
+  display: block;
 }
 
 .done {
   text-decoration: line-through;
+}
+
+.hide {
+  /* display: none; impossible de jouer avec cette règle car c'est surchargé par la suite (ou alors sauf à mettre !important */
+  display: none !important;
+}
+
+.show {
+  /* display: inline-block; impossible de jouer avec cette règle car c'est surchargé par la suite (ou alors sauf à mettre !important */
+
+}
+
+.alert {
+  color: red;
 }
