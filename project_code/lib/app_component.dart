@@ -111,7 +111,7 @@ class AppComponent implements OnInit, OnEvent{
     serverTodoItems = await serverDataService.synchroTodoList(InMemoryDataService.giveAllSince(dateSynchro), dayhourSynchro, user, token);
     // todo: traiter le retour serveur
     serverTodoItems.forEach((serverTodoItem) {
-      //print("server todo..." + serverTodoItem.id + " " + serverTodoItem.title);
+      print("response server dealing with..." + serverTodoItem.id);
       todoItem = InMemoryDataService.giveById(serverTodoItem.id);
       if (todoItem != null) {
         if (serverTodoItem.version != "XX") {
@@ -119,17 +119,21 @@ class AppComponent implements OnInit, OnEvent{
             todoItem.version = serverTodoItem.version;
             todoItem.title = serverTodoItem.title;
             todoItem.description = serverTodoItem.description;
+            if (serverTodoItem != null) todoItem.done = serverTodoItem.done;
+            else todoItem.done = false;
         }
         else {
           InMemoryDataService.clearById(todoItem.id);
         }
       }
-      else {
+      else if (serverTodoItem.version != "XX") {
         InMemoryDataService.insert(serverTodoItem);
       }
       // mettre à jour la date de synchro en fonction des résultats du serveur
       if (dateSynchro.isBefore(DateTime.parse(serverTodoItem.dayhour))) dayhourSynchro = serverTodoItem.dayhour;
     });
+    // faire un local save à la fin pour garder la base local en conformité
+    if (serverTodoItems.length > 0) await localDataService.saveLocal(InMemoryDataService.giveAll());
   }
 
 }

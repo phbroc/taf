@@ -32,7 +32,9 @@ class LoginComponent implements OnInit {
 
   @override
   Future<Null> ngOnInit() async {
-    connected = await serverDataService.checkToken(user, localDataService.getToken(user));
+    String token = localDataService.getToken(user);
+    if (token != null) connected = await serverDataService.checkToken(user, token);
+    else connected = false;
   }
 
   void pushEvent(bool c) {

@@ -38,6 +38,7 @@ $conn->beginTransaction();
 				$count = $conn->exec($sql);
 				if ($count==1) echo '{"token":"XX"}';
 				else echo '{"token": "error"}';
+				// TODO : il faut indiquer à la BDD que ce token s'étent retiré, il faut aussi retirer ce token info de la liste des tokens mémorisés dans les data des todo marqués en version XX.
 			}
 			catch(PDOException $e) {
 				echo '{"Caught exception": "'.$e->getMessage().'"}';

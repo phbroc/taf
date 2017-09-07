@@ -33,15 +33,17 @@ function generateRandomString($length = 10) {
 	$user = $jsonObj->user;
 	$pass = $jsonObj->pass;
 	
-	if ($pass == "somepassword") {
+	if ($pass == "pingpong88") {
 
+//for debugging
+//$user = "PBD";
  	
 		$result = "{";
 		$dayhour_sc = date('Y-m-d H:i:s');
 		$data_new = generateRandomString(20);
 
 		try {
-			$sql = "SELECT id FROM taf WHERE id LIKE'".$user."TOKEN%' ORDER BY id DESC LIMIT 1";
+			$sql = "SELECT id FROM taf WHERE id LIKE'".$user."TOKEN%' ORDER BY dayhour DESC LIMIT 1";
 			$select = $conn->query($sql, PDO::FETCH_OBJ);
 			while($row = $select->fetch()) {
 				$id_db = $row->id; 
@@ -110,19 +112,21 @@ function generateRandomString($length = 10) {
 		
 		
 
-
+//
 
 	}
 	else {
 		echo '{"token":null}';
 	}
+	
+
  }
  else
  {
  	echo '{"Caught exception":"method execpetion"}';
  }
 
- 
+ //
  
  $conn->commit();
  $conn = null;

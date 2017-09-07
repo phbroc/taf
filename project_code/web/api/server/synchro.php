@@ -1,4 +1,6 @@
 <?php
+// uniquement pendant les test :
+// header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST');
 header('Content-Type: application/json; charset=utf-8');
 // attention, visiblement il faut faire gaffe à l'encodage
@@ -109,7 +111,9 @@ $conn->beginTransaction();
 			}
 		
 			// cas où l'id existe déjà en BDD
-			if ($version_db != "")
+			// if ($version_db != "")
+			// avec notre nouvelle façon de gérer la suppression, le fait de dire que l'item n'existe pas, c'est aussi qu'il n'est pas en version XX
+			if (($version_db != "") && ($version_db != "XX"))
 			{
 				// il est déjà présent et...
 				// est-ce qu'il est indiqué pour suppression ?
@@ -117,10 +121,17 @@ $conn->beginTransaction();
 				{
 					// cas simple où on demande de supprimer un item
 					// DONE : DELETE et renvoyer l'info qu'il a été supprimé grâce à une version = "XX"
+					// TODO : en fait problème, le delete doit être plus subtil car il faut réussir à effacer ce TODO de tous les devices potentiellement synchronisés. Dans un premier temps le plus simple est de ne pas l'eaffacer mais de le garder avec la version "XX" et la supression va se propager dans les devices.
+					// c'est ici l'acte qui enclenche la suppression, on peut sauvegarder l'id du token par exemple...
 					try {
-						$sql = "DELETE FROM taf WHERE id='".$id_js."'";
+						// $sql = "DELETE FROM taf WHERE id='".$id_js."'";
+						// on fait un update à la place du DELETE
+						$sql = "UPDATE taf SET data='".$data_js_str_slashed."', dayhour='".$dayhour_sc."', version='XX' WHERE id='".$id_js."'";
 						$count = $conn->exec($sql);
-						if ($count==1) $result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_sc.'","version":"'.'XX'.'","data":'.$data_js_str.'},';
+						if ($count==1) {
+							$result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_sc.'","version":"'.'XX'.'","data":'.$data_js_str.'},';
+							$proceededIds .= "'".$id_js."',";
+						}
 						else $result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_js.'","version":"'.'DD'.'","data":'.$data_js_str.'},';
 					}
 					catch(PDOException $e) {
@@ -162,6 +173,8 @@ $conn->beginTransaction();
 					$nextVersion = "00";
 					//echo "INSERT REINDEX ".$user.$nextIndex." v".$nextVersion.", ";
 					//$result .= '{"id":"'..'","dayhour":"'..'","version":"'..'","data":"'..'"},';
+					// ATTENTION si $data_js_str est vide, y'a un problème!
+					if (empty($data_js_str_slashed)) $data_js_str_slashed = '{"title":"[bug0] INSERT empty string!","description":"","done":null}';
 					try {
 						$sql = "INSERT INTO taf (id, dayhour, version, data, flags, cas, expiry) VALUES ('".$user.$nextIndex."', '".$dayhour_sc."', '".$nextVersion."', '".$data_js_str_slashed."', 0, 0, 0)";
 						$count = $conn->exec($sql);
@@ -190,6 +203,8 @@ $conn->beginTransaction();
 					// DONE : UPDATE et passer la version à +1 de la version_js
 					$nextVersion = sprintf("%02d", 1+(int)$version_js);
 					//echo "UPDATE NORMAL ".$id_js." v".$nextVersion.", ";
+					// ATTENTION si $data_js_str est vide, y'a un problème! on va éviter d'écraser le précédent enregistrement
+					if (empty($data_js_str_slashed)) $data_js_str_slashed = '{"title":"[bug1] UPDATE with empty string!","description":"","done":null}';
 					try {
 						$sql = "UPDATE taf SET data='".$data_js_str_slashed."', dayhour='".$dayhour_sc."', version='".$nextVersion."' WHERE id='".$id_js."'";
 						$count = $conn->exec($sql);
@@ -215,6 +230,8 @@ $conn->beginTransaction();
 					$nextVersion = sprintf("%02d", 1+(int)$version_js);
 					//echo "UPDATE WARNING ".$id_js." v".$nextVersion.", ";
 					// TODO : ajouter une info de warning
+					// ATTENTION si $data_js_str est vide, y'a un problème! on va éviter d'écraser le précédent enregistrement
+					if (empty($data_js_str_slashed)) $data_js_str_slashed = '{"title":"[bug2] UPDATE with empty string!","description":"","done":null}';
 					try {
 						$sql = "UPDATE taf SET data='".$data_js_str_slashed."', dayhour='".$dayhour_sc."', version='".$nextVersion."' WHERE id='".$id_js."'";
 						$count = $conn->exec($sql);
@@ -239,6 +256,8 @@ $conn->beginTransaction();
 					$nextVersion = sprintf("%02d", 1+(int)$version_db);
 					//echo "UPDATE CONFLIT ".$id_js." v".$nextVersion.", ";
 					// TODO : placer les infos obsolètes dans data
+					// ATTENTION si $data_js_str est vide, y'a un problème! on va éviter d'écraser le précédent enregistrement
+					if (empty($data_js_str_slashed)) $data_js_str_slashed = '{"title":"[bug3] UPDATE with empty string!","description":"","done":null}';
 					try {
 						$sql = "UPDATE taf SET data='".$data_db_slashed."', dayhour='".$dayhour_sc."', version='".$nextVersion."' WHERE id='".$id_js."'";
 						$count = $conn->exec($sql);
@@ -256,6 +275,31 @@ $conn->beginTransaction();
 					}	
 				}
 			}
+			// cas ou le todo est présent en version XX, c'est à dire en attente de supression définitive
+			else if ($version_db == "XX")
+			{
+				// dans ce cas c'est qu'un device connecté fait une synchro après qu'un précédent device ait demandé de supprimer le todo. 
+				// c'est la BDD qui prend le dessus, il faut renvoyer la commande pour effacer le todo sur le device distant.
+				// il faut aussi ajouter le token de ce device dans la liste data pour dire qu'on l'a traité
+				// TODO : calculer à quel moment on peut supprimer véritablement l'enregistrement: c'est quand il n'y a plus de token en cours et qui ne soit pas dans le data de ce todo en XX.
+				try {
+					// $sql = "DELETE FROM taf WHERE id='".$id_js."'";
+					// on fait un update à la place du DELETE
+					$sql = "UPDATE taf SET data='".$data_js_str_slashed."', dayhour='".$dayhour_sc."' WHERE id='".$id_js."'";
+					$count = $conn->exec($sql);
+					if ($count==1) {
+						$result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_sc.'","version":"'.'XX'.'","data":'.$data_js_str.'},';
+						$proceededIds .= "'".$id_js."',";
+					}
+					else $result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_js.'","version":"'.'DD'.'","data":'.$data_js_str.'},';
+				}
+				catch(PDOException $e) {
+					echo '[{"Caught exception": "'.$e->getMessage().'"}]';
+					$conn->rollBack();
+					$conn = null;
+					die;
+				}
+			}
 			// cas ou l'id n'existe pas en BDD
 			else
 			{
@@ -265,6 +309,8 @@ $conn->beginTransaction();
 					$nextVersion = "00";
 					// DONE : faire un insert tout simple
 					//echo "INSERT NORMAL ".$id_js." v".$nextVersion.", ";
+					// ATTENTION si $data_js_str est vide, y'a un problème! on va éviter d'écraser le précédent enregistrement
+					if (empty($data_js_str_slashed)) $data_js_str_slashed = '{"title":"[bug4] INSERT with empty string!","description":"","done":null}';
 					try {
 						$sql = "INSERT INTO taf (id, dayhour, version, data, flags, cas, expiry) VALUES ('".$id_js."', '".$dayhour_sc."', '".$nextVersion."', '".$data_js_str_slashed."', 0, 0, 0)";
 						$count = $conn->exec($sql);
@@ -295,6 +341,8 @@ $conn->beginTransaction();
 					// TODO : ajouter une info que l'item est restauré en BDD ?
 					$nextVersion = sprintf("%02d", 1+(int)$version_js);
 					//echo "INSERT RESTAURE ".$id_js." v".$nextVersion.", ";
+					// ATTENTION si $data_js_str est vide, y'a un problème! on va éviter d'écraser le précédent enregistrement
+					if (empty($data_js_str_slashed)) $data_js_str_slashed = '{"title":"[bug5] INSERT with empty string!","description":"","done":null}';
 					try {
 						$sql = "INSERT INTO taf (id, dayhour, version, data, flags, cas, expiry) VALUES ('".$id_js."', '".$dayhour_sc."', '".$nextVersion."', '".$data_js_str_slashed."', 0, 0, 0)";
 						$count = $conn->exec($sql);

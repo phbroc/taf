@@ -91,6 +91,8 @@ class TodoListComponent implements OnInit {
     // todoItems.remove(todoItem);
     // nouvelle stratégie = on va marquer l'item comme étant à supprimer et on ne va plus l'afficher
     todoItem.version = "DD";
+    var now = new DateTime.now();
+    todoItem.dayhour = dformat.format(now);
   }
 
   //=> todoItems.removeAt(index);

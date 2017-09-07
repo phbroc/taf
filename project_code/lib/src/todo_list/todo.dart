@@ -15,7 +15,7 @@ class Todo {
     if (todo_js['data'] != null) {
       if (todo_js['data']['title'] != null) _title = todo_js['data']['title']; else _title = "no title!";
       if (todo_js['data']['description'] != null) _description = todo_js['data']['description']; else _description = "";
-      if (todo_js['data']['done'] != null) _done = todo_js['data']['done'] == true ? true : false;
+      if (todo_js['data']['done'] != null) _done = todo_js['data']['done'] == true ? true : false; else _done = false;
     }
     return new Todo(todo_js['id'], todo_js['dayhour'], todo_js['version'], _title, _description, _done);
   }

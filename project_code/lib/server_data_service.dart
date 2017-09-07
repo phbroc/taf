@@ -14,7 +14,7 @@ class ServerDataService {
   static const _apiUrl = 'api/server/synchro.php';
 
   static const _loginUrl = 'api/server/login.php';
-  //static const _loginUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/login7.php';
+  //static const _loginUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/login11.php';
 
   static const _logoffUrl = 'api/server/logoff.php';
   //static const _logoffUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/logoff7.php';
@@ -121,9 +121,14 @@ class ServerDataService {
             'token': t
           }));
       print("response body... " + response.body);
-      Map jsonData = _extractData(response);
-      print("server response found... " + jsonData['connected'].toString());
-      return jsonData['connected'] == true;
+      if (response.body.indexOf('Exception') == -1) {
+        Map jsonData = _extractData(response);
+        print("server response found... " + jsonData['connected'].toString());
+        return jsonData['connected'] == true;
+      }
+      else {
+        return false;
+      }
     }
     catch (e) {
       throw _handleError(e);
@@ -169,7 +174,7 @@ class ServerDataService {
     try {
       print("post... "); // + JSON.encode({'token':t,'user':u,'dayhour':dh,'data':todoPost}));
       final response = await _http.post(_apiUrl, headers: _headers, body: JSON.encode({'token':t,'user':u,'dayhour':dh,'data':todoPost}));
-      //print("response body... " + response.body);
+      print("response body... " + response.body);
       List jsonList = _extractData(response);
       print("server response found... " + jsonList.length.toString());
       for(var i=0; i<jsonList.length; i++) {
