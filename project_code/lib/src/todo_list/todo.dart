@@ -12,7 +12,13 @@ class Todo {
     String _title;
     String _description;
     bool _done;
-    if (todo_js['data'] != null) {
+    if (todo_js['version'] == "XX") {
+      // correspond à une demande de suppression, on n'a plus les infos title, description, done, mais une liste de tokens en retour
+      _title = "to delete !";
+      _description = "";
+      _done = false;
+    }
+    else if (todo_js['data'] != null) {
       if (todo_js['data']['title'] != null) _title = todo_js['data']['title']; else _title = "no title!";
       if (todo_js['data']['description'] != null) _description = todo_js['data']['description']; else _description = "";
       if (todo_js['data']['done'] != null) _done = todo_js['data']['done'] == true ? true : false; else _done = false;

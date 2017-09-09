@@ -110,17 +110,24 @@ class AppComponent implements OnInit, OnEvent{
     String token = localDataService.getToken(user);
     serverTodoItems = await serverDataService.synchroTodoList(InMemoryDataService.giveAllSince(dateSynchro), dayhourSynchro, user, token);
     // todo: traiter le retour serveur
-    serverTodoItems.forEach((serverTodoItem) {
+    if (serverTodoItems != null) serverTodoItems.forEach((serverTodoItem) {
       print("response server dealing with..." + serverTodoItem.id);
       todoItem = InMemoryDataService.giveById(serverTodoItem.id);
       if (todoItem != null) {
         if (serverTodoItem.version != "XX") {
             todoItem.dayhour = serverTodoItem.dayhour;
             todoItem.version = serverTodoItem.version;
-            todoItem.title = serverTodoItem.title;
-            todoItem.description = serverTodoItem.description;
-            if (serverTodoItem != null) todoItem.done = serverTodoItem.done;
-            else todoItem.done = false;
+            // securité, on teste si le titre en retour du serveur n'est pas égal à "no title!" car dans le cas contraire c'est qu'il y a un problème dans toute la partie data, sans doute qu'elle est vide sur le serveur à cause d'un bug
+            if (serverTodoItem.title != "no title!") {
+              todoItem.title = serverTodoItem.title;
+              todoItem.description = serverTodoItem.description;
+              if (serverTodoItem.done != null) todoItem.done = serverTodoItem.done;
+              else todoItem.done = false;
+            }
+            else {
+              // là par sécurité on va garder les info qui étaient présentes avant la synchro en commençant par un warning sur le title
+              todoItem.title = "!BUG DATABASE LOST DATA! " + todoItem.title;
+            }
         }
         else {
           InMemoryDataService.clearById(todoItem.id);

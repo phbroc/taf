@@ -12,6 +12,7 @@ class ServerDataService {
   static final _headers = {'Content-Type': 'application/json; charset=utf-8'};
 
   static const _apiUrl = 'api/server/synchro.php';
+  //static const _apiUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/synchro20.php';
 
   static const _loginUrl = 'api/server/login.php';
   //static const _loginUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/login11.php';
@@ -19,7 +20,7 @@ class ServerDataService {
   static const _logoffUrl = 'api/server/logoff.php';
   //static const _logoffUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/logoff7.php';
   static const _checkTokenUrl = 'api/server/checkToken.php';
-  //static const _checkTokenUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/checkToken.php';
+  //static const _checkTokenUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/checkToken3.php';
 
 
   ServerDataService(this._http);
@@ -109,8 +110,8 @@ class ServerDataService {
     catch (e) {
       throw _handleError(e);
     }
-
     */
+
     // methode en POST
 
     try {

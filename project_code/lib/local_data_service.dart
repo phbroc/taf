@@ -59,6 +59,10 @@ class LocalDataService {
     print("serialisation : " + jsonData);
   }
 
+  void removeLocal() {
+    localStorage['tafJSON'] = "";
+  }
+
   void saveToken(String u, String t) {
     String key = 'tafTOKEN'+u;
     localStorage[key] = t;
@@ -67,5 +71,10 @@ class LocalDataService {
   String getToken(String u) {
     String key = 'tafTOKEN'+u;
     return localStorage[key];
+  }
+
+  void removeToken(String u) {
+    String key = 'tafTOKEN'+u;
+    localStorage[key] = "";
   }
 }

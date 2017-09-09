@@ -61,8 +61,9 @@ class LoginComponent implements OnInit {
     print("disconnect...");
     String userToken = await serverDataService.disconnect(user, localDataService.getToken(user));
     print("userToken : " +userToken);
-    localDataService.saveToken(user, "");
+    localDataService.removeToken(user);
     connected = false;
+    if (userToken == "XX") localDataService.removeLocal();
     pushEvent(connected);
   }
 }

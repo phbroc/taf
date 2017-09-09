@@ -30,9 +30,10 @@ $conn->beginTransaction();
 
 
 // lieu pour debuguer 
-// $token = "...";
-// $dayhour_rq = "2017-01-01 12:00:00";
+// $token = "EzwGHHbOiwuoUvVfKxnu";
+// $dayhour_rq = "2017-11-01 12:00:00";
 // $user_rq = "PBD";
+// $jsonObj = json_decode('{"data":[{"id":"PBD000014","dayhour":"2017-09-02 12:52:07","version":"02","data":{"title":"Encore autre chose ?","description":"test","done":false}}]}');
 // fin du lieu pour debuguer
 
 
@@ -46,22 +47,52 @@ $conn->beginTransaction();
 	
 	// test de la validité du token de connexion
 	$data_db = "";
+	$userOtherTokens = "[";
+	$userTokenId = "";
+	$identified = false;
+	
+	// s'il y a une demande de supression d'un item, il faut mémoriser la liste des token des autres appareils connectés pour propager la supression de cet item dans les appareils connectés par la suite
+    // donc premièrement on va établir la liste des token de l'utisateur, autres que le token en cours.
+    // et on va mémoriser l'id du token si l'utilisateur a envoyé un token qui existe, afin de mettre à jour la date de ce token
+    	
 	try {
-		$sql = "SELECT COUNT(*) FROM taf WHERE id LIKE'".$user_rq."TOKEN%' AND data='".$token."'";
+		$sql = "SELECT id, data FROM taf WHERE id LIKE'".$user_rq."TOKEN%'";
 		$select = $conn->query($sql, PDO::FETCH_OBJ);
+		
+		$identified = false;
+		while($row = $select->fetch()) {
+			if ($row->data != $token) $userOtherTokens .= '"'.$row->data.'",';
+			else {
+				$identified = true;
+				$userTokenId = $row->id;
+			}
+		}
+		if (strlen($userOtherTokens) > 1) $userOtherTokens = substr($userOtherTokens, 0, -1)."]";
+		else $userOtherTokens = "[]";
 	}
 	catch(PDOException $e) {
 		echo '[{"Caught exception": "'.$e->getMessage().'"}]';
 		$conn = null;
 		die;
 	}
-
-	if ($select->fetchColumn() > 0) {
-    	$identified = true;
-    }
-    else {
-    	$identified = false;
-    }
+	
+	if($identified) {
+		// Premièrement mettre à jour la date dayhour du token, pour signifier que cette connexion est active
+    	try {
+			$sql = "UPDATE taf SET dayhour='".$dayhour_sc."' WHERE id='".$userTokenId."'";
+			$count = $conn->exec($sql);
+			if ($count!=1) {
+				echo '[{"Caught exception": "error in updating token"}]';
+				$conn = null;
+				die;
+			}
+		}
+		catch(PDOException $e) {
+			echo '[{"Caught exception": "'.$e->getMessage().'"}]';
+			$conn = null;
+			die;
+		}
+	}
 	
 	// fin du test de la validité du token de connexion
 	
@@ -72,7 +103,7 @@ $conn->beginTransaction();
  	{	
     	$userCurrent = ""; // on va essayer de mémoriser l'utilisateur pour minimiser le calcul du prochain index, puisque normalement l'utilisateur ne change pas.
     	$userCurrentMaxindex = 0;
-    	
+
     	while($item = array_shift($jsonObj->data))
 		{
 			// _js récupération des valeurs depuis le JSON
@@ -122,11 +153,12 @@ $conn->beginTransaction();
 					// cas simple où on demande de supprimer un item
 					// DONE : DELETE et renvoyer l'info qu'il a été supprimé grâce à une version = "XX"
 					// TODO : en fait problème, le delete doit être plus subtil car il faut réussir à effacer ce TODO de tous les devices potentiellement synchronisés. Dans un premier temps le plus simple est de ne pas l'eaffacer mais de le garder avec la version "XX" et la supression va se propager dans les devices.
-					// c'est ici l'acte qui enclenche la suppression, on peut sauvegarder l'id du token par exemple...
+					// c'est ici l'acte qui enclenche la suppression, il faut sauvegarder la liste des autres token pour propager la supression lors des synchro avec les autres appareils à venir
 					try {
 						// $sql = "DELETE FROM taf WHERE id='".$id_js."'";
 						// on fait un update à la place du DELETE
-						$sql = "UPDATE taf SET data='".$data_js_str_slashed."', dayhour='".$dayhour_sc."', version='XX' WHERE id='".$id_js."'";
+						if ($userOtherTokens != "[]") $sql = "UPDATE taf SET data='".$userOtherTokens."', dayhour='".$dayhour_sc."', version='XX' WHERE id='".$id_js."'";
+						else $sql = "DELETE FROM taf WHERE id='".$id_js."'";
 						$count = $conn->exec($sql);
 						if ($count==1) {
 							$result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_sc.'","version":"'.'XX'.'","data":'.$data_js_str.'},';
@@ -249,7 +281,7 @@ $conn->beginTransaction();
 					}	
 				}
 				else
-				{
+				{	
 					// situation de conflit où l'item présent en BDD a un numéro de version plus élevé que celui qui est poussé via le JSON
 					// il s'agit simplement une tentative de mettre à jour un item avec une version ancienne qui n'a pas bien été synchronisée
 					// DONE : gérer le conflit, peut-être un UPDATE en plaçant les valeurs en conflit (obsolètes) uniquement dans un key-value spécial du JSON?
@@ -258,7 +290,26 @@ $conn->beginTransaction();
 					// TODO : placer les infos obsolètes dans data
 					// ATTENTION si $data_js_str est vide, y'a un problème! on va éviter d'écraser le précédent enregistrement
 					if (empty($data_js_str_slashed)) $data_js_str_slashed = '{"title":"[bug3] UPDATE with empty string!","description":"","done":null}';
+					
+					
+					// on traite les données en conflit en les poussant dans un nouveau key/value du JSON
+					$todoDbData = json_decode("[".$data_db."]", true);
+					$todoJsData = json_decode("[".$data_js_str."]", true);
+					$conflict = [];
+					
+					//echo $todoDbData[0]["title"]. " / ".$todoJsData[0]["title"];
+					if ($todoDbData[0]["title"] != $todoJsData[0]["title"]) $conflict["title"] = $todoJsData[0]["title"];
+					if ($todoDbData[0]["description"] != $todoJsData[0]["description"]) $conflict["description"] = $todoJsData[0]["description"];
+					if ($todoDbData[0]["done"] != $todoJsData[0]["done"]) $conflict["done"] = $todoJsData[0]["done"];
+					
+					$todoDbData[0]["conflict"] = $conflict;
+					// attention à bien garder le JSON_UNESCAPED_UNICODE
+					$data_db = json_encode($todoDbData, JSON_UNESCAPED_UNICODE);
+					$data_db = substr($data_db, 1, -1);
+					$data_db_slashed = addcslashes($data_db, "'");
+					
 					try {
+						// bug corrigé ici, j'avais mis une mauvaise variable avec une valeur Null (c'était marqué $data_db_slashed, ça n'existe pas).
 						$sql = "UPDATE taf SET data='".$data_db_slashed."', dayhour='".$dayhour_sc."', version='".$nextVersion."' WHERE id='".$id_js."'";
 						$count = $conn->exec($sql);
 						if ($count==1) {
@@ -273,6 +324,8 @@ $conn->beginTransaction();
 						$conn = null;
 						die;
 					}	
+					
+					
 				}
 			}
 			// cas ou le todo est présent en version XX, c'est à dire en attente de supression définitive
@@ -285,13 +338,31 @@ $conn->beginTransaction();
 				try {
 					// $sql = "DELETE FROM taf WHERE id='".$id_js."'";
 					// on fait un update à la place du DELETE
-					$sql = "UPDATE taf SET data='".$data_js_str_slashed."', dayhour='".$dayhour_sc."' WHERE id='".$id_js."'";
-					$count = $conn->exec($sql);
+					// il faut enregistrer que ce token a traité la suppression
+					
+					$pos = strpos($data_db, $token);
+					if (($pos == 2) && (strlen($data_db) == 24)) {
+						// c'est le dernier device a synchroniser, donc on peut vraiment supprimer l'item de la base
+						$sql_del = "DELETE FROM taf WHERE id='".$id_js."'";
+						$count = $conn->exec($sql_del);
+					}
+					else if ($pos != false) {
+						//echo $pos." ".(int)(strlen($data_sl)-22);
+						if ($pos == (int)(strlen($data_db)-22)) {
+							$data_db = str_replace(',"'.$token.'"', "", $data_db);
+						}
+						else {
+							$data_db = str_replace('"'.$token.'",', "", $data_db);
+						}
+						$sql_upd = "UPDATE taf SET data='".$data_db."' WHERE id='".$id_js."'";
+						$count = $conn->exec($sql_upd);
+					}
+					
 					if ($count==1) {
-						$result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_sc.'","version":"'.'XX'.'","data":'.$data_js_str.'},';
+						$result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_sc.'","version":"'.'XX'.'","data":'.$data_db.'},';
 						$proceededIds .= "'".$id_js."',";
 					}
-					else $result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_js.'","version":"'.'DD'.'","data":'.$data_js_str.'},';
+					else $result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_js.'","version":"'.'DD'.'","data":'.$data_db.'},';
 				}
 				catch(PDOException $e) {
 					echo '[{"Caught exception": "'.$e->getMessage().'"}]';
@@ -391,6 +462,27 @@ $conn->beginTransaction();
 				if ($data_sl == "") $data_sl = "{}";
 			
 				$result .= '{"id":"'.$id_sl.'","dayhour":"'.$dayhour_sl.'","version":"'.$version_sl.'","data":'.$data_sl.'},';
+				
+				// il faut mettre à jour les items s'ils sont en version XX pour dire que le token a été traité
+				if ($version_sl == "XX") {
+					$pos = strpos($data_sl, $token);
+					if (($pos == 2) && (strlen($data_sl) == 24)) {
+						// c'est le dernier device a synchroniser, donc on peut vraiment supprimer l'item de la base
+						$sql_del = "DELETE FROM taf WHERE id='".$id_sl."'";
+						$count = $conn->exec($sql_del);
+					}
+					else if ($pos != false) {
+						//echo $pos." ".(int)(strlen($data_sl)-22);
+						if ($pos == (int)(strlen($data_sl)-22)) {
+							$data_sl = str_replace(',"'.$token.'"', "", $data_sl);
+						}
+						else {
+							$data_sl = str_replace('"'.$token.'",', "", $data_sl);
+						}
+						$sql_upd = "UPDATE taf SET data='".$data_sl."' WHERE id='".$id_sl."'";
+						$count = $conn->exec($sql_upd);
+					}
+				}
 			}
 		}
 		catch(PDOException $e) {
@@ -410,6 +502,7 @@ $conn->beginTransaction();
 	else $result = "[]";
 	
 	echo $result;
+
 
  }
  else {
