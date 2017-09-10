@@ -85,10 +85,15 @@ class AppComponent implements OnInit, OnEvent{
     String t = localDataService.getToken(user);
     if (t != null) connected = await serverDataService.checkToken(user, t);
     print("connected..." + connected.toString());
+    // récupérer la date de la dernière synchro si mémorisée
+    String dh = localDataService.getDayhourSync(user);
+    if (dh != null) dayhourSynchro = dh;
+
     // important de démarrer avec ce reset pour commencer
     InMemoryDataService.resetDb();
     // récupérer la liste de todoItems qui serait en localhost
     InMemoryDataService.startWithAll(await localDataService.getTodoList());
+
     // là je ne sais pas encore comment faire...
     // TODO: je ne pense pas que ça soit la bonne méthode...
     //await for(String s in LoginComponent.eventStream) { print(s); });
@@ -137,7 +142,10 @@ class AppComponent implements OnInit, OnEvent{
         InMemoryDataService.insert(serverTodoItem);
       }
       // mettre à jour la date de synchro en fonction des résultats du serveur
-      if (dateSynchro.isBefore(DateTime.parse(serverTodoItem.dayhour))) dayhourSynchro = serverTodoItem.dayhour;
+      if (dateSynchro.isBefore(DateTime.parse(serverTodoItem.dayhour))) {
+        dayhourSynchro = serverTodoItem.dayhour;
+        localDataService.saveDayhourSync(user, dayhourSynchro);
+      }
     });
     // faire un local save à la fin pour garder la base local en conformité
     if (serverTodoItems.length > 0) await localDataService.saveLocal(InMemoryDataService.giveAll());

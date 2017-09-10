@@ -33,7 +33,7 @@ function generateRandomString($length = 10) {
 	$user = $jsonObj->user;
 	$pass = $jsonObj->pass;
 	
-	if ($pass == "pingpong88") {
+	if ($pass == "somepassword") {
 
 //for debugging
 //$user = "PBD";

@@ -77,4 +77,14 @@ class LocalDataService {
     String key = 'tafTOKEN'+u;
     localStorage[key] = "";
   }
+
+  void saveDayhourSync(String u, String dh) {
+    String key = 'tafDH'+u;
+    localStorage[key] = dh;
+  }
+
+  String getDayhourSync(String u) {
+    String key = 'tafDH'+u;
+    return localStorage[key];
+  }
 }
