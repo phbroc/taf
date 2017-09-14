@@ -144,7 +144,8 @@ $conn->beginTransaction();
 			// cas où l'id existe déjà en BDD
 			// if ($version_db != "")
 			// avec notre nouvelle façon de gérer la suppression, le fait de dire que l'item n'existe pas, c'est aussi qu'il n'est pas en version XX
-			if (($version_db != "") && ($version_db != "XX"))
+			//if (($version_db != "") && ($version_db != "XX"))
+			if ((($version_db != "") && ($version_js != "")) || (($version_db == "XX") && ($version_js == "")))
 			{
 				// il est déjà présent et...
 				// est-ce qu'il est indiqué pour suppression ?
@@ -173,10 +174,11 @@ $conn->beginTransaction();
 						die;
 					}
 				}
-				// ou est-ce que l'item à synchroniser n'a pas de version (il est nouveau)?
+				// ou est-ce que l'item à synchroniser n'a pas de version (est-il nouveau)?
 				else if ($version_js == "")
 				{
 					// conflit simple, cas où la création d'items s'est faite sur plusieurs appareils avant une synchro, il faut donc pousser le nouvel item au prochain rang possible pour cet utilisateur et initialiser sa version à 00, c'est un tout nouvel item
+					// il peut arriver avec un id_js qui correspond en fait à un item en attente de suppression totale sur la BDD (donc version XX), pas grave faut pousser le nouveau item quand même.
 					$pos = strpos($id_js,"0");
 					$user = substr($id_js,0,$pos);
 					$index = substr($id_js,$pos,6);
@@ -214,6 +216,7 @@ $conn->beginTransaction();
 						{
 							$result .= '{"id":"'.$user.$nextIndex.'","dayhour":"'.$dayhour_sc.'","version":"'.$nextVersion.'","data":'.$data_js_str.'},';
 							// il faut dire de mettre à jour (insérer) côté client celui qui avait un numéro de version déjà occupé
+							// attention au cas particulier où version_db était positionné à XX alors que version_js était à vide, il faut quand même renvoyer la version_db au client ça sera équivalent à changer d'id.
 							$result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_db.'","version":"'.$version_db.'","data":'.$data_db.'},';
 							$proceededIds .= "'".$user.$nextIndex."','".$id_js."',";
 						}
@@ -448,9 +451,9 @@ $conn->beginTransaction();
 	{
 		try {
 			if ($proceededIds != "()")
-				$sql = "SELECT id, dayhour, version, data FROM taf WHERE id>='".$user_rq."000000' AND id<='".$user_rq."999999' AND dayhour>='".$dayhour_rq."' AND id NOT IN ".$proceededIds." ORDER BY id ASC;";
+				$sql = "SELECT id, dayhour, version, data FROM taf WHERE id>='".$user_rq."000000' AND id<='".$user_rq."999999' AND dayhour>'".$dayhour_rq."' AND id NOT IN ".$proceededIds." ORDER BY id ASC;";
 			else
-				$sql = "SELECT id, dayhour, version, data FROM taf WHERE id>='".$user_rq."000000' AND id<='".$user_rq."999999' AND dayhour>='".$dayhour_rq."' ORDER BY id ASC;"; 
+				$sql = "SELECT id, dayhour, version, data FROM taf WHERE id>='".$user_rq."000000' AND id<='".$user_rq."999999' AND dayhour>'".$dayhour_rq."' ORDER BY id ASC;"; 
 			
 			$select = $conn->query($sql, PDO::FETCH_OBJ);
 			while($row = $select->fetch()) {
