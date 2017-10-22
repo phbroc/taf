@@ -1,9 +1,15 @@
-<div *ngIf="todoItem != null">
+<div *ngIf="todoItem != null" class="tdDetail">
+    <span class="inBackColorStripeH">
+          <div class="col{{todoItem.color}}">&nbsp;</div>
+    </span>
     <h2>{{todoItem.title}}</h2>
-    <div><label>id: </label>{{todoItem.id}}</div>
+
     <div>
-        <material-input required [(ngModel)]="todoItem.title" placeholder="title" (change)="onChanged()"></material-input>
-        <material-input multiline [(ngModel)]="todoItem.description" label="Saisir la description..." (change)="onChanged()"></material-input>
+        <material-input required [(ngModel)]="todoItem.title" placeholder="title" label="titre" floatingLabel (change)="onChanged()"></material-input>
+        <material-input [(ngModel)]="todoItem.tag" placeholder="tag" label="tag" floatingLabel (change)="onChanged()"></material-input>
+        <material-input multiline [(ngModel)]="todoItem.description" label="description" floatingLabel (change)="onChanged()"></material-input>
     </div>
+
+    <div class="infoId"><label>id: </label>{{todoItem.id}}</div>
     <button (click)="goBack()">Back</button>
 </div>

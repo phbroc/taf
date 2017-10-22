@@ -47,3 +47,14 @@ li material-fab {
 .alert {
   color: red;
 }
+
+span.inBackColorStripeP {
+  position: absolute;
+  top: 0.4em;
+}
+
+span.inBackColorStripeP>div {
+  width:0.4em;
+  height:1.6em;
+  display: block;
+}

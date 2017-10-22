@@ -20,7 +20,7 @@ class ServerDataService {
   static const _logoffUrl = 'api/server/logoff.php';
   //static const _logoffUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/logoff7.php';
   static const _checkTokenUrl = 'api/server/checkToken.php';
-  //static const _checkTokenUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/checkToken3.php';
+  //static const _checkTokenUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/checkToken4.php';
 
 
   ServerDataService(this._http);
@@ -122,7 +122,7 @@ class ServerDataService {
             'token': t
           }));
       print("response body... " + response.body);
-      if (response.body.indexOf('Exception') == -1) {
+      if (response.body.indexOf('connected') != -1) {
         Map jsonData = _extractData(response);
         print("server response found... " + jsonData['connected'].toString());
         return jsonData['connected'] == true;

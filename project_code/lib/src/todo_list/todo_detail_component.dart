@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'dart:async';
 import 'todo.dart';
 import 'package:taf/in_memory_data_service.dart';
+import '../utils/converter.dart';
 
 @Component(
   selector: 'todo-detail',
@@ -42,6 +43,9 @@ class TodoDetailComponent implements OnInit {
     //print("onChanged...");
     var now = new DateTime.now();
     todoItem.dayhour = dformat.format(now);
+
+    if (todoItem.tag != "") todoItem.color = Converter.stringToModuloIndex(todoItem.tag, 80) +1;
+    else todoItem.color = 0;
   }
 }
 

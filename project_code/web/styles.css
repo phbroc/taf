@@ -14,6 +14,10 @@ body {
   font-family: Roboto, Helvetica, Arial, sans-serif;
 }
 
+h2 {
+  padding-left: 0.6em;
+}
+
 /* importé du projet TOH */
 
 a {
@@ -60,5 +64,92 @@ nav a.active {
 }
 
 /* fin import TOH */
+
+/* 80 CSS colors for background behind white text */
+
+.col0 {background-color: White;}
+.col1 {background-color: Blue;}
+.col2 {background-color: BlueViolet;}
+.col3 {background-color: Brown;}
+.col4 {background-color: BurlyWood;}
+.col5 {background-color: CadetBlue;}
+.col6 {background-color: Chocolate;}
+.col7 {background-color: Coral;}
+.col8 {background-color: CornflowerBlue;}
+.col9 {background-color: Crimson;}
+.col10 {background-color: DarkBlue;}
+.col11 {background-color: DarkCyan;}
+.col12 {background-color: DarkGoldenRod;}
+.col13 {background-color: DarkGreen;}
+.col14 {background-color: DarkOrange;}
+.col15 {background-color: DarkOrchid;}
+.col16 {background-color: DarkRed;}
+.col17 {background-color: DarkSalmon;}
+.col18 {background-color: DarkSeaGreen;}
+.col19 {background-color: DarkSlateBlue;}
+.col20 {background-color: DarkTurquoise;}
+.col21 {background-color: DarkViolet;}
+.col22 {background-color: DeepPink;}
+.col23 {background-color: DeepSkyBlue;}
+.col24 {background-color: DodgerBlue;}
+.col25 {background-color: FireBrick;}
+.col26 {background-color: ForestGreen;}
+.col27 {background-color: Fuchsia;}
+.col28 {background-color: Gold;}
+.col29 {background-color: GoldenRod;}
+.col30 {background-color: Green;}
+.col31 {background-color: HotPink;}
+.col32 {background-color: IndianRed;}
+.col33 {background-color: Indigo;}
+.col34 {background-color: LightCoral;}
+.col35 {background-color: LightPink;}
+.col36 {background-color: LightSalmon;}
+.col37 {background-color: LightSeaGreen;}
+.col38 {background-color: LightSkyBlue;}
+.col39 {background-color: LightSteelBlue;}
+.col40 {background-color: LimeGreen;}
+.col41 {background-color: Magenta;}
+.col42 {background-color: Maroon;}
+.col43 {background-color: MediumAquaMarine;}
+.col44 {background-color: MediumBlue;}
+.col45 {background-color: MediumOrchid;}
+.col46 {background-color: MediumPurple;}
+.col47 {background-color: MediumSeaGreen;}
+.col48 {background-color: MediumSlateBlue;}
+.col49 {background-color: MediumTurquoise;}
+.col50 {background-color: MediumVioletRed;}
+.col51 {background-color: MidnightBlue;}
+.col52 {background-color: Navy;}
+.col53 {background-color: Olive;}
+.col54 {background-color: OliveDrab;}
+.col55 {background-color: Orange;}
+.col56 {background-color: OrangeRed;}
+.col57 {background-color: Orchid;}
+.col58 {background-color: PaleVioletRed;}
+.col59 {background-color: Peru;}
+.col50 {background-color: Pink;}
+.col61 {background-color: Plum;}
+.col62 {background-color: Purple;}
+.col63 {background-color: RebeccaPurple;}
+.col64 {background-color: Red;}
+.col65 {background-color: RosyBrown;}
+.col66 {background-color: RoyalBlue;}
+.col67 {background-color: SaddleBrown;}
+.col68 {background-color: Salmon;}
+.col69 {background-color: SandyBrown;}
+.col70 {background-color: SeaGreen;}
+.col71 {background-color: Sienna;}
+.col72 {background-color: Silver;}
+.col73 {background-color: SkyBlue;}
+.col74 {background-color: SteelBlue;}
+.col75 {background-color: Tan;}
+.col76 {background-color: Teal;}
+.col77 {background-color: Tomato;}
+.col78 {background-color: Turquoise;}
+.col79 {background-color: Violet;}
+.col80 {background-color: YellowGreen;}
+
+/*  end of 80 CSS colors */
+
 
 

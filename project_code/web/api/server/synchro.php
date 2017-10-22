@@ -145,7 +145,7 @@ $conn->beginTransaction();
 			// if ($version_db != "")
 			// avec notre nouvelle façon de gérer la suppression, le fait de dire que l'item n'existe pas, c'est aussi qu'il n'est pas en version XX
 			//if (($version_db != "") && ($version_db != "XX"))
-			if ((($version_db != "") && ($version_js != "")) || (($version_db == "XX") && ($version_js == "")))
+			if ((($version_db != "") && ($version_js != "") && ($version_db != "XX")) || (($version_db == "XX") && ($version_js == "")))
 			{
 				// il est déjà présent et...
 				// est-ce qu'il est indiqué pour suppression ?
@@ -257,7 +257,7 @@ $conn->beginTransaction();
 					}
 					
 				}
-				else if ($version_js > $version_db)
+				else if (($version_js > $version_db) && ($version_db != "XX"))
 				{
 					// situation de conflit qui ne devrait pas arriver car la BDD est la seule à incrémenter les numéros de version
 					// pas très grave comme la version JSON semble plus élevée, on ferait alors un UPDATE WARNING

@@ -1,3 +1,24 @@
 material-input {
     width: 100%;
 }
+
+.tdDetail {
+    position: relative;
+}
+
+span.inBackColorStripeH {
+    position: absolute;
+    top: 0.1em;
+}
+
+span.inBackColorStripeH>div {
+    width:0.4em;
+    height:1.8em;
+    display: block;
+}
+
+.infoId {
+    font-size: 0.8em;
+    color: Gray;
+    padding: 0.4em 0;
+}

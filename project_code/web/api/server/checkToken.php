@@ -1,6 +1,6 @@
 <?php
 // uniquement pendant les test :
-//header('Access-Control-Allow-Origin: *');
+// header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 header('Access-Control-Allow-Methods: GET, POST');
 
@@ -17,10 +17,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
 
 	$user = $jsonObj->user;
 	$token = $jsonObj->token;
+	
+/*	
 
+*/
 		try {
-			$sql = "SELECT COUNT(*) FROM taf WHERE id LIKE'".$user."TOKEN%' AND data='".$token."'";
+			$sql = "SELECT id FROM taf WHERE id LIKE'".$user."TOKEN%' AND data='".$token."' LIMIT 1";
 			$select = $conn->query($sql, PDO::FETCH_OBJ);
+			while($row = $select->fetch()) {
+				$id_db = $row->id; 
+			}
 		}
 		catch(PDOException $e) {
 			echo '{"Caught exception": "'.$e->getMessage().'"}';
@@ -28,12 +34,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
 			die;
 		}
 	
-		if ($select->fetchColumn() > 0) {
-			echo '{"connected":true}';
+		if ($id_db != "") {
+			try {
+				$dayhour_sc = date('Y-m-d H:i:s');
+				$sql = "UPDATE taf SET dayhour='".$dayhour_sc."' WHERE id='".$id_db."'";
+				$count = $conn->exec($sql);
+				if ($count==1) echo '{"connected":true}';
+				else echo '{"Caught exception": "update problem"}';
+			}
+			catch(PDOException $e) {
+				echo '{"Caught exception": "'.$e->getMessage().'"}';
+				$conn = null;
+				die;
+			}
+
+			
 		}
 		else {
 			echo '{"connected":false}';
 		}
+
  }
  else
  {
