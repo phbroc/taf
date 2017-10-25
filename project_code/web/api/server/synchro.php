@@ -145,7 +145,7 @@ $conn->beginTransaction();
 			// if ($version_db != "")
 			// avec notre nouvelle façon de gérer la suppression, le fait de dire que l'item n'existe pas, c'est aussi qu'il n'est pas en version XX
 			//if (($version_db != "") && ($version_db != "XX"))
-			if ((($version_db != "") && ($version_js != "") && ($version_db != "XX")) || ($version_js == ""))
+			if ((($version_db != "") && ($version_js != "") && ($version_db != "XX")) || (($version_db != "") && ($version_js == "")))
 			{
 				// il est déjà présent et...
 				// est-ce qu'il est indiqué pour suppression ?
