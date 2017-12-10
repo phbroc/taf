@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'src/todo_list/todo.dart';
 
-import 'package:angular2/core.dart';
+import 'package:angular/core.dart';
 
 @Injectable()
 class LocalDataService {

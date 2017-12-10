@@ -1,7 +1,8 @@
 import 'package:angular_components/angular_components.dart';
-import 'package:angular2/angular2.dart';
-import 'package:angular2/platform/common.dart';
-import 'package:angular2/router.dart';
+import 'package:angular/angular.dart';
+//import 'package:angular2/platform/common.dart';
+import 'package:angular_router/angular_router.dart';
+//import 'package:angular_forms/angular_forms.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
 import 'todo.dart';
@@ -14,7 +15,6 @@ import '../utils/converter.dart';
   templateUrl: 'todo_detail_component.html',
   directives: const [
     CORE_DIRECTIVES,
-    FORM_DIRECTIVES,
     materialDirectives,
   ],
 )

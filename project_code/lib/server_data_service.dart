@@ -1,4 +1,4 @@
-import 'package:angular2/angular2.dart';
+import 'package:angular/angular.dart';
 import 'src/todo_list/todo.dart';
 import 'dart:async';
 import 'package:http/http.dart';

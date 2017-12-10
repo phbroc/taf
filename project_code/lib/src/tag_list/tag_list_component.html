@@ -1,0 +1,13 @@
+<h3>Les tags</h3>
+
+<p *ngIf="tagItems.isEmpty">
+    La liste des tags est vide.
+</p>
+
+<div *ngIf="tagItems.isNotEmpty">
+    <ul class="allthetags">
+        <li *ngFor="let tagItem of tagItems; let i=index">
+            <span class="col{{tagItem.color}}">&nbsp;{{tagItem.tagName}}&nbsp;</span>
+        </li>
+    </ul>
+</div>

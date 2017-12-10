@@ -1,8 +1,8 @@
 // Copyright (c) 2017, philippe. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
-import 'package:angular2/angular2.dart';
-import 'package:angular2/router.dart';
+import 'package:angular/angular.dart';
+import 'package:angular_router/angular_router.dart';
 import 'package:angular_components/angular_components.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
@@ -12,6 +12,7 @@ import 'src/todo_list/todo_detail_component.dart';
 //import 'src/todo_list/todo_list_service.dart';
 import 'src/app_config.dart';
 import 'src/login_component.dart';
+import 'src/dashboard_component.dart';
 import 'in_memory_data_service.dart';
 import 'local_data_service.dart';
 
@@ -36,9 +37,10 @@ abstract class OnEvent {
   selector: 'my-app',
   styleUrls: const ['app_component.css'],
   templateUrl: 'app_component.html',
-  directives: const [materialDirectives, ROUTER_DIRECTIVES],
-  providers: const [materialProviders,
-                    ROUTER_PROVIDERS,
+  directives: const [ROUTER_DIRECTIVES,
+                      materialDirectives,],
+  providers: const [ROUTER_PROVIDERS,
+                    materialProviders,
                     LocalDataService,
                     InMemoryDataService,
                     const Provider(APP_CONFIG, useFactory:tafConfigFactory),
@@ -49,6 +51,8 @@ abstract class OnEvent {
 )
 
 @RouteConfig(const [
+  const Redirect(path: '/', redirectTo: const ['Dashboard']),
+  const Route(path: '/accueil', name: 'Dashboard', component: DashboardComponent, useAsDefault: true),
   const Route(path: '/login', name: 'Login', component:LoginComponent),
   const Route(path: '/list', name: 'List', component:TodoListComponent),
   const Route(path: '/detail/:id', name: 'Detail', component:TodoDetailComponent),
@@ -59,10 +63,6 @@ class AppComponent implements OnInit, OnEvent{
   //
   final LocalDataService localDataService;
   final ServerDataService serverDataService;
-  // pas besoin d'instancier cette classe InMemoryData car elle est 100% static
-  //final InMemoryData inMemoryData;
-  //List<Todo> localTodoItems = [];
-  //List<Todo> todoItems = [];
   final String user;
   final String title;
   bool connected = false;

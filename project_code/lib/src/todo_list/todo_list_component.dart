@@ -2,9 +2,10 @@
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:angular2/platform/common.dart';
-import 'package:angular2/angular2.dart';
-import 'package:angular2/router.dart';
+//import 'package:angular2/platform/common.dart';
+import 'package:angular/angular.dart';
+import 'package:angular_router/angular_router.dart';
+//import 'package:angular_forms/angular_forms.dart';
 import 'package:angular_components/angular_components.dart';
 import 'package:intl/intl.dart';
 
@@ -119,7 +120,5 @@ class TodoListComponent implements OnInit {
 
   void goBack() => _location.back();
 
-  void onReorder(ReorderEvent e) =>
-      todoItems.insert(e.destIndex, todoItems.removeAt(e.sourceIndex));
 
 }

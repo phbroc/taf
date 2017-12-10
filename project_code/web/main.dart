@@ -1,8 +1,8 @@
 // Copyright (c) 2017, philippe. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
-import 'package:angular2/angular2.dart';
-import 'package:angular2/platform/browser.dart';
+import 'package:angular/angular.dart';
+// import 'package:angular2/platform/browser.dart';
 // j'ajouterai cet import si j'utilise un vrai serveur
 import 'package:http/browser_client.dart';
 

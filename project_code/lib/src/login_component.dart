@@ -1,5 +1,6 @@
 import 'package:angular_components/angular_components.dart';
-import 'package:angular2/angular2.dart';
+import 'package:angular/angular.dart';
+//import 'package:angular_forms/angular_forms.dart'; serait utile si j'ajoute formDirectives dans les directives
 import 'package:taf/local_data_service.dart';
 import 'package:taf/server_data_service.dart';
 import 'dart:async';
@@ -8,11 +9,8 @@ import 'dart:async';
   selector: 'login',
   styleUrls: const ['login_component.css'],
   templateUrl: 'login_component.html',
-  directives: const [
-    CORE_DIRECTIVES,
-    FORM_DIRECTIVES,
-    materialDirectives,
-  ],
+  directives: const [CORE_DIRECTIVES,
+                      materialDirectives,],
 )
 
 class LoginComponent implements OnInit {
