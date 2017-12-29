@@ -8,8 +8,12 @@ ul.allthetags>li{
     margin: 0.3em;
 }
 
-ul.allthetags>li>span {
-    padding: 0.1em 0.3em;
+ul.allthetags>li>a {
     color: white;
+    text-decoration: none;
+}
+
+ul.allthetags>li>a>span {
+    padding: 0.1em 0.3em;
     border-radius: 0.8em;
 }

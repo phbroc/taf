@@ -14,9 +14,7 @@ body {
   font-family: Roboto, Helvetica, Arial, sans-serif;
 }
 
-h2 {
-  padding-left: 0.6em;
-}
+
 
 /* importé du projet TOH */
 
@@ -127,7 +125,7 @@ nav a.active {
 .col57 {background-color: Orchid;}
 .col58 {background-color: PaleVioletRed;}
 .col59 {background-color: Peru;}
-.col50 {background-color: Pink;}
+.col60 {background-color: Pink;}
 .col61 {background-color: Plum;}
 .col62 {background-color: Purple;}
 .col63 {background-color: RebeccaPurple;}

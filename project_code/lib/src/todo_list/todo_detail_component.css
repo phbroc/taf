@@ -22,3 +22,7 @@ span.inBackColorStripeH>div {
     color: Gray;
     padding: 0.4em 0;
 }
+
+h2.shiftRight {
+    padding-left: 0.6em;
+}

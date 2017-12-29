@@ -1,4 +1,8 @@
 <!-- Components info: https://webdev.dartlang.org/components -->
+<h2 *ngIf="tag.isEmpty || tag=='all'">Tout ce qu'il y a.</h2>
+<h2 *ngIf="tag.isNotEmpty && tag!='all'">Tout ce qui concerne {{tag}}</h2>
+
+
 <div>
   <material-input label="Que faut-il faire?"
                   floatingLabel style="width:80%"

@@ -9,7 +9,7 @@ import 'dart:async';
 import 'src/todo_list/todo.dart';
 import 'src/todo_list/todo_list_component.dart';
 import 'src/todo_list/todo_detail_component.dart';
-//import 'src/todo_list/todo_list_service.dart';
+import 'src/tag_list/tag_list_component.dart';
 import 'src/app_config.dart';
 import 'src/login_component.dart';
 import 'src/dashboard_component.dart';
@@ -54,8 +54,9 @@ abstract class OnEvent {
   const Redirect(path: '/', redirectTo: const ['Dashboard']),
   const Route(path: '/accueil', name: 'Dashboard', component: DashboardComponent, useAsDefault: true),
   const Route(path: '/login', name: 'Login', component:LoginComponent),
-  const Route(path: '/list', name: 'List', component:TodoListComponent),
+  const Route(path: '/list/:tag', name: 'List', component:TodoListComponent),
   const Route(path: '/detail/:id', name: 'Detail', component:TodoDetailComponent),
+  const Route(path: '/tag', name: 'Tag', component:TagListComponent),
 ])
 
 class AppComponent implements OnInit, OnEvent{
@@ -82,6 +83,11 @@ class AppComponent implements OnInit, OnEvent{
 
   Future<Null> ngOnInit() async {
     print("ngOnInit()...");
+    // important de démarrer avec ce reset pour commencer
+    InMemoryDataService.resetDb();
+    // récupérer la liste de todoItems qui serait en localhost
+    InMemoryDataService.startWithAll(localDataService.getTodoList());
+
     String t = localDataService.getToken(user);
     if (t != null) connected = await serverDataService.checkToken(user, t);
     print("connected..." + connected.toString());
@@ -89,10 +95,7 @@ class AppComponent implements OnInit, OnEvent{
     String dh = localDataService.getDayhourSync(user);
     if (dh != null) dayhourSynchro = dh;
 
-    // important de démarrer avec ce reset pour commencer
-    InMemoryDataService.resetDb();
-    // récupérer la liste de todoItems qui serait en localhost
-    InMemoryDataService.startWithAll(await localDataService.getTodoList());
+
 
     // là je ne sais pas encore comment faire...
     // TODO: je ne pense pas que ça soit la bonne méthode...

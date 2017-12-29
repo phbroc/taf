@@ -67,6 +67,16 @@ class InMemoryDataService {
     return filteredTodo;
   }
 
+  static List<Todo> giveAllByTag(String t) {
+    List<Todo> filteredTodo = [];
+    print("giveAllBy " + t + "...");
+    _todoDb.forEach((todoItem) {
+      if (todoItem.tag == t) filteredTodo.add(todoItem);
+    });
+    print("... length : " + filteredTodo.length.toString());
+    return filteredTodo;
+  }
+
   static void clearById(String id) {
     print("DB length : " + _todoDb.length.toString() + ", clearById : " + id);
     _todoDb.removeWhere((todoItem) => todoItem.id == id);
@@ -90,5 +100,29 @@ class InMemoryDataService {
 
   static List<Tag> giveListOfTags() {
     return _tagLi;
+  }
+
+  static void updateTagList(Tag t) {
+    if (t != null)
+    {
+      Tag inlisttag = _tagLi.firstWhere((tagl) => tagl.tagName == t.tagName, orElse: () => null);
+      if (inlisttag == null)
+        {
+          _tagLi.add(t);
+        }
+    }
+  }
+
+  static int giveMaxTodoId() {
+    int maxId = 0;
+    int fetchId = 0;
+    String idStr = "";
+    _todoDb.forEach((todoItem) {
+      idStr = todoItem.id;
+      //print("add search next id..." + idStr);
+      fetchId = int.parse(idStr.substring(idStr.indexOf('0')));
+      if (fetchId > maxId) maxId=fetchId;}
+    );
+    return maxId;
   }
 }

@@ -14,7 +14,7 @@ class LocalDataService {
   final nformat = new NumberFormat("000000");
   final dformat = new DateFormat('yyyy-MM-dd HH:mm:ss');
 
-  Future<List<Todo>> getTodoList() async {
+  List<Todo> getTodoList() {
     print("get local... "); // + todoList.length.toString());
     List<Todo> todoList = <Todo>[];
     //if (todoList.length > 0) return todoList;

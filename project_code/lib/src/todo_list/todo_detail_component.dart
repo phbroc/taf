@@ -4,10 +4,11 @@ import 'package:angular/angular.dart';
 import 'package:angular_router/angular_router.dart';
 //import 'package:angular_forms/angular_forms.dart';
 import 'package:intl/intl.dart';
-import 'dart:async';
+//import 'dart:async';
 import 'todo.dart';
 import 'package:taf/in_memory_data_service.dart';
 import '../utils/converter.dart';
+import '../tag_list/tag.dart';
 
 @Component(
   selector: 'todo-detail',
@@ -31,9 +32,9 @@ class TodoDetailComponent implements OnInit {
 
   TodoDetailComponent(this._location, this._routeParams);
 
-  Future<Null> ngOnInit() async {
+  void ngOnInit() {
     var id = _routeParams.get('id');
-    if (id != null) todoItem = await InMemoryDataService.giveById(id);
+    if (id != null) todoItem = InMemoryDataService.giveById(id);
     print("detail..." + todoItem.title);
   }
 
@@ -43,8 +44,16 @@ class TodoDetailComponent implements OnInit {
     //print("onChanged...");
     var now = new DateTime.now();
     todoItem.dayhour = dformat.format(now);
+  }
 
-    if (todoItem.tag != "") todoItem.color = Converter.stringToModuloIndex(todoItem.tag, 80) +1;
+  void onTagChanged() {
+    var now = new DateTime.now();
+    todoItem.dayhour = dformat.format(now);
+
+    if (todoItem.tag != "") {
+      todoItem.color = Converter.stringToModuloIndex(todoItem.tag, 80) +1;
+      InMemoryDataService.updateTagList(new Tag(todoItem.tag, todoItem.color));
+    }
     else todoItem.color = 0;
   }
 }

@@ -2,6 +2,13 @@ import 'dart:convert';
 
 class Converter {
   static int stringToModuloIndex(String s, int r) {
+    s = s.replaceAll(new RegExp(r'é'), "e");
+    s = s.replaceAll(new RegExp(r'è'), "e");
+    s = s.replaceAll(new RegExp(r'ê'), "e");
+    s = s.replaceAll(new RegExp(r'à'), "a");
+    s = s.replaceAll(new RegExp(r'ô'), "o");
+    s = s.replaceAll(new RegExp(r'ï'), "i");
+    //print("tag converter " + s);
     final encoder = new AsciiEncoder();
     int sum = 0;
     List<int> ascList = encoder.convert(s);

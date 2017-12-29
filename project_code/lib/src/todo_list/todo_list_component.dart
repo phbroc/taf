@@ -1,7 +1,7 @@
 // Copyright (c) 2017, philippe. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
+//import 'dart:async';
 //import 'package:angular2/platform/common.dart';
 import 'package:angular/angular.dart';
 import 'package:angular_router/angular_router.dart';
@@ -47,6 +47,9 @@ class TodoListComponent implements OnInit {
   String newTodo = '';
   final Router _router;
   final Location _location;
+  final RouteParams _routeParams;
+
+  String tag;
 
   final String user = "PBD";
   //final String user;
@@ -56,39 +59,32 @@ class TodoListComponent implements OnInit {
 
   //TodoListComponent(this.inMemoryData);
   //TodoListComponent(@Inject(APP_CONFIG) AppConfig config, this._router):user = config.user;
-  TodoListComponent(this._router, this._location);
+  TodoListComponent(this._router, this._location, this._routeParams);
 
   @override
-  Future<Null> ngOnInit() async {
+  void ngOnInit() {
     //todoItems = await todoListService.getTodoItems();
-    todoItems = await InMemoryDataService.giveAll();
+    tag = _routeParams.get('tag');
+    if (tag == "all") todoItems = InMemoryDataService.giveAll();
+    else if ((tag != null) && (tag != "")) todoItems = InMemoryDataService.giveAllByTag(tag);
+    else todoItems = InMemoryDataService.giveAll();
     print("List onInit..." + todoItems.length.toString());
   }
 
-  Future<Null> add() async {
-    int nextId = 0;
-    int fetchId = 0;
-    String idStr = "";
-    todoItems.forEach((todoItem) {
-      idStr = todoItem.id;
-      //print("add search next id..." + idStr);
-      fetchId = int.parse(idStr.substring(idStr.indexOf('0')));
-      if (fetchId > nextId) nextId=fetchId;}
-    );
-
+  void add() {
     var now = new DateTime.now();
-    var id = user+nformat.format(nextId+1);
+    var id = user+nformat.format(InMemoryDataService.giveMaxTodoId()+1);
     List<String> decodeList = Converter.decodeNewTodo(newTodo);
     var color = 0;
     if (decodeList[2] != "") color = Converter.stringToModuloIndex(decodeList[2], 80) + 1;
 
-    await InMemoryDataService.insert(new Todo.fromJson({'id': id, 'dayhour': dformat.format(now), 'version': '',
+    InMemoryDataService.insert(new Todo.fromJson({'id': id, 'dayhour': dformat.format(now), 'version': '',
                                                         'data': {'title':decodeList[0], 'description':decodeList[1], 'tag':decodeList[2], 'color':color}}));
     // plus besoin de d'ajouter le todoitem à la liste todoItems car il y a surement un binding automatique avec la ligne du dessus
     newTodo = '';
   }
 
-  Future<Null> remove(Todo todoItem) async {
+  void remove(Todo todoItem) {
     // await todoListService.delete(todoItem.id);
     // await InMemoryDataService.clearById(todoItem.id);
     // plus besoin de retirer le todoitem à la liste todoItems car il y a surement un binding automatique avec la ligne du dessus
@@ -106,7 +102,7 @@ class TodoListComponent implements OnInit {
   }
   */
 
-  Future<Null> gotoDetail(Todo todoItem) => _router.navigate([
+  void gotoDetail(Todo todoItem) => _router.navigate([
     'Detail',
     {'id': todoItem.id}
   ]);
