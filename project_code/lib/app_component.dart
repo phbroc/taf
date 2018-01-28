@@ -133,6 +133,8 @@ class AppComponent implements OnInit, OnEvent{
               else todoItem.done = false;
               todoItem.tag = serverTodoItem.tag;
               todoItem.color = serverTodoItem.color;
+              todoItem.end = serverTodoItem.end;
+              todoItem.priority = serverTodoItem.priority;
             }
             else {
               // là par sécurité on va garder les info qui étaient présentes avant la synchro en commençant par un warning sur le title

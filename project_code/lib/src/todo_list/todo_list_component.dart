@@ -66,7 +66,7 @@ class TodoListComponent implements OnInit {
     //todoItems = await todoListService.getTodoItems();
     tag = _routeParams.get('tag');
     if (tag == "all") todoItems = InMemoryDataService.giveAll();
-    else if ((tag != null) && (tag != "")) todoItems = InMemoryDataService.giveAllByTag(tag);
+    else if ((tag != null) && (tag != "") && (tag != "all")) todoItems = InMemoryDataService.giveAllByTag(tag);
     else todoItems = InMemoryDataService.giveAll();
     print("List onInit..." + todoItems.length.toString());
   }
@@ -74,13 +74,21 @@ class TodoListComponent implements OnInit {
   void add() {
     var now = new DateTime.now();
     var id = user+nformat.format(InMemoryDataService.giveMaxTodoId()+1);
+
     List<String> decodeList = Converter.decodeNewTodo(newTodo);
+    String adTag = decodeList[2];
     var color = 0;
-    if (decodeList[2] != "") color = Converter.stringToModuloIndex(decodeList[2], 80) + 1;
+    if (adTag != "") color = Converter.stringToModuloIndex(adTag, 80) + 1;
+    else if ((tag != "") && (tag != "all")) {
+      adTag = tag;
+      color = Converter.stringToModuloIndex(adTag, 80) + 1;
+    }
 
     InMemoryDataService.insert(new Todo.fromJson({'id': id, 'dayhour': dformat.format(now), 'version': '',
-                                                        'data': {'title':decodeList[0], 'description':decodeList[1], 'tag':decodeList[2], 'color':color}}));
+                                                        'data': {'title':decodeList[0], 'description':decodeList[1], 'tag':adTag, 'color':color, 'end':null, 'priority':100}}));
     // plus besoin de d'ajouter le todoitem à la liste todoItems car il y a surement un binding automatique avec la ligne du dessus
+    // mais ça ne fonctionne pas si la page est filtrée par tag... je ne sais pas pourquoi
+    if ((tag != null) && (tag != "") && (tag != "all")) todoItems = InMemoryDataService.giveAllByTag(tag);
     newTodo = '';
   }
 

@@ -17,31 +17,21 @@ class LocalDataService {
   List<Todo> getTodoList() {
     print("get local... "); // + todoList.length.toString());
     List<Todo> todoList = <Todo>[];
-    //if (todoList.length > 0) return todoList;
-    //else {
-      var jsonString = localStorage['tafJSON'];
-      if (jsonString != null) {
+    var jsonString = localStorage['tafJSON'];
+    if (jsonString != null) {
         print("json... " + jsonString);
         List jsonList = JSON.decode(jsonString);
-        //print(jsonList[0]);
-        //print(jsonList[0]['id']);
-        //print(jsonList[0]['data']['title']);
 
         for(var i=0; i<jsonList.length; i++) {
-          //print(jsonList[i]);
-          //todoList.add(new Todo(jsonList[i]['id'], jsonList[i]['dayhour'], jsonList[i]['version'], jsonList[i]['data']['title'], jsonList[i]['data']['description'],false));
           todoList.add(new Todo.fromJson(jsonList[i]));
         }
 
-
         return todoList;
-      }
-      else
-      {
+    }
+    else {
         print("empty local storage");
         return todoList;
-      }
-    //}
+    }
   }
 
   void saveLocal(List<Todo> l) {
@@ -49,7 +39,6 @@ class LocalDataService {
     var sb = new StringBuffer();
     sb.write('[');
     l.forEach((todoItem) {
-      //sb.write('{"id":"'+todoItem.id+'", "dayhour":"'+todoItem.dayhour+'", "version":"'+todoItem.version+'", "data":{"title":"'+todoItem.title+'", "description":"'+todoItem.description+'"}},');
       sb.write(JSON.encode(todoItem.toJson())+",");
     });
     if (l.length > 0) jsonData = sb.toString().substring(0, sb.toString().length-1);

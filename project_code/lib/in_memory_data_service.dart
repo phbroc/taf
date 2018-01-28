@@ -44,8 +44,8 @@ class InMemoryDataService {
       targetTodoItem.done = todoItemChanges.done;
       targetTodoItem.tag = todoItemChanges.tag;
       targetTodoItem.color = todoItemChanges.color;
-
-
+      targetTodoItem.end = todoItemChanges.end;
+      targetTodoItem.priority = todoItemChanges.priority;
     }
   }
 

@@ -26,3 +26,9 @@ span.inBackColorStripeH>div {
 h2.shiftRight {
     padding-left: 0.6em;
 }
+
+span.error {
+    font-size: 0.8em;
+    color: Red;
+    padding: 0.4em 0;
+}
