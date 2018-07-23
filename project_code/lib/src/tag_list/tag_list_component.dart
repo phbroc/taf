@@ -2,7 +2,7 @@ import 'package:angular/angular.dart';
 import 'package:angular_router/angular_router.dart';
 import '../../in_memory_data_service.dart';
 import 'tag.dart';
-import '../todo_list/todo_list_component.dart';
+//import '../todo_list/todo_list_component.dart';
 
 @Component(
   selector: 'tag-list',
@@ -10,7 +10,7 @@ import '../todo_list/todo_list_component.dart';
   templateUrl: 'tag_list_component.html',
   directives: const [
     CORE_DIRECTIVES,
-    TodoListComponent,
+    //TodoListComponent,
     ROUTER_DIRECTIVES,
   ],
 )

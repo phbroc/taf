@@ -1,6 +1,7 @@
 import 'package:angular/angular.dart';
 import 'package:angular_router/angular_router.dart';
 import 'tag_list/tag_list_component.dart';
+import 'ordered_list/week_list_component.dart';
 
 @Component(
   selector: 'dashboard',
@@ -9,6 +10,7 @@ import 'tag_list/tag_list_component.dart';
   directives: const [
     CORE_DIRECTIVES,
     TagListComponent,
+    WeekListComponent,
   ],
 )
 

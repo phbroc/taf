@@ -35,6 +35,8 @@ class TodoDetailComponent implements OnInit {
 
   Control endControl;
 
+  String dayStr;
+
   TodoDetailComponent(this._location, this._routeParams) {
 
   }
@@ -46,6 +48,7 @@ class TodoDetailComponent implements OnInit {
 
     if ((c.value.trim().length != 10) && (c.value.trim().length > 0)) {
       errors['Le format de date est sur 10 caractères JJ/MM/AAAA.'] = true;
+      dayStr = "";
     }
     else if (c.value.trim().length > 0) {
       // ce regex doit fonctionner avec JJ/MM/AAAA 00:00:00, l'heure étant en option.
@@ -53,6 +56,7 @@ class TodoDetailComponent implements OnInit {
       Match matches = expTag.firstMatch(c.value.trim());
       if (matches == null) {
         errors['Le format de date doit respecter JJ/MM/AAAA.'] = true;
+        dayStr = "";
       }
       else {
         String aaaa = c.value.trim().substring(6,10);
@@ -61,13 +65,16 @@ class TodoDetailComponent implements OnInit {
         String dstr = aaaa+"-"+mm+"-"+jj;
         print("parsing... " + dstr);
         try {
-          DateTime.parse(dstr);
+          var d = DateTime.parse(dstr);
+          dayStr = giveWeekDay(d.weekday);
         }
         catch (exception) {
           errors['La date '+dstr+' est invalide.'] = true;
+          dayStr = "";
         }
       }
     }
+    else dayStr = "";
     return errors;
   }
 
@@ -113,11 +120,12 @@ class TodoDetailComponent implements OnInit {
 
   void onEndChanged() {
     print("onEndChanged... " + endControl.value);
-    if (endControl.valid) {
+    if (endControl.value == "") todoItem.end = null;
+    else if (endControl.valid) {
       String aaaa = endControl.value.trim().substring(6,10);
       String mm = endControl.value.trim().substring(3,5);
       String jj = endControl.value.trim().substring(0,2);
-      String dstr = aaaa+"-"+mm+"-"+jj;
+      String dstr = aaaa+"-"+mm+"-"+jj+" 23:59:59";
       try {
         todoItem.end = DateTime.parse(dstr);
       }
@@ -125,6 +133,101 @@ class TodoDetailComponent implements OnInit {
         print("error parsing date "+dstr);
       }
     }
+  }
+
+  DateTime todayEnds() {
+    var now = new DateTime.now();
+    String aaaa = now.year.toString();
+    String mm = now.month.toString();
+    if (mm.length == 1) mm = "0"+mm;
+    String jj = now.day.toString();
+    if (jj.length == 1) jj = "0"+jj;
+    String dstr = aaaa+"-"+mm+"-"+jj+" 23:59:59";
+    return DateTime.parse(dstr);
+  }
+
+  String formatDateStr(DateTime d) {
+    String aaaa = d.year.toString();
+    String mm = d.month.toString();
+    if (mm.length == 1) mm = "0"+mm;
+    String jj = d.day.toString();
+    if (jj.length == 1) jj = "0"+jj;
+    String dstr = jj+"/"+mm+"/"+aaaa;
+    return dstr;
+  }
+
+  String giveWeekDay(int d) {
+    String retStr;
+    switch(d) {
+      case 1: retStr = "lundi"; break;
+      case 2: retStr = "mardi"; break;
+      case 3: retStr = "mercredi"; break;
+      case 4: retStr = "jeudi"; break;
+      case 5: retStr = "vendredi"; break;
+      case 6: retStr = "samedi"; break;
+      case 7: retStr = "dimanche"; break;
+      default: retStr = "error"; break;
+    }
+    return retStr;
+  }
+
+  void endsJ() {
+    var today = todayEnds();
+    todoItem.end = today;
+    String dstrjma = formatDateStr(today);
+    // cette subtilité init du control pour passer une valeur!
+    this.endControl = new Control(dstrjma, validateDate);
+  }
+
+  void endsPlusOne() {
+    DateTime newEnd;
+    if (todoItem.end == null) {
+      newEnd = todayEnds();
+    }
+    else {
+      newEnd = todoItem.end;
+    }
+    // print("add 1 day to ... "+newEnd.toString()+"...");
+    newEnd = newEnd.add(new Duration(days: 1));
+    //print("new end ... "+newEnd.toString()+".");
+    todoItem.end = newEnd;
+    String dstrjma = formatDateStr(newEnd);
+    // cette subtilité init du control pour passer une valeur!
+    this.endControl = new Control(dstrjma, validateDate);
+  }
+
+  void endsMinusOne() {
+    DateTime newEnd;
+    if (todoItem.end == null) {
+      newEnd = todayEnds();
+    }
+    else {
+      newEnd = todoItem.end;
+    }
+    // print("add 1 day to ... "+newEnd.toString()+"...");
+    newEnd = newEnd.subtract(new Duration(days: 1));
+    //print("new end ... "+newEnd.toString()+".");
+    todoItem.end = newEnd;
+    String dstrjma = formatDateStr(newEnd);
+    // cette subtilité init du control pour passer une valeur!
+    this.endControl = new Control(dstrjma, validateDate);
+  }
+
+  void endsPlusSeven() {
+    DateTime newEnd;
+    if (todoItem.end == null) {
+      newEnd = todayEnds();
+    }
+    else {
+      newEnd = todoItem.end;
+    }
+    // print("add 1 day to ... "+newEnd.toString()+"...");
+    newEnd = newEnd.add(new Duration(days: 7));
+    //print("new end ... "+newEnd.toString()+".");
+    todoItem.end = newEnd;
+    String dstrjma = formatDateStr(newEnd);
+    // cette subtilité init du control pour passer une valeur!
+    this.endControl = new Control(dstrjma, validateDate);
   }
 
 

@@ -32,11 +32,11 @@ class Todo {
     }
     else if (todo_js['data'] != null) {
       if (todo_js['data']['title'] != null) _title = todo_js['data']['title']; else _title = "no title!";
-      if (todo_js['data']['description'] != null) _description = todo_js['data']['description']; else _description = "";
+      if (todo_js['data']['description'] != null) _description = todo_js['data']['description'].replaceAll(new RegExp(r'\\n'), '\n'); else _description = "";
       if (todo_js['data']['done'] != null) _done = todo_js['data']['done'] == true ? true : false; else _done = false;
       if (todo_js['data']['tag'] != null) _tag = todo_js['data']['tag']; else _tag = "";
       if (todo_js['data']['color'] != null) _color = todo_js['data']['color']; else _color = 0;
-      if (todo_js['data']['end'] != null) {
+      if ((todo_js['data']['end'] != null) && (todo_js['data']['end'] != "null")) {
         try {
           _end = DateTime.parse(todo_js['data']['end']);
         }
@@ -51,7 +51,7 @@ class Todo {
     return new Todo(todo_js['id'], todo_js['dayhour'], todo_js['version'], _title, _description, _done, _tag, _color, _end, _priority);
   }
 
-  Map toJson() => {'id':id, 'dayhour':dayhour, 'version':version, 'data':{'title':title, 'description':description, 'done':done, 'tag':tag, 'color':color, 'end':end.toString(), 'priority':priority}};
+  Map toJson() => {'id':id, 'dayhour':dayhour, 'version':version, 'data':{'title':title, 'description':description.replaceAll(new RegExp(r'\n'), '\\n'), 'done':done, 'tag':tag, 'color':color, 'end':end.toString(), 'priority':priority}};
 
 }
 

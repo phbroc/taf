@@ -32,12 +32,12 @@
         </material-checkbox>
 
         <span [class.done]="done.checked" class="thetitle">{{todoItem.title}}
-        <material-fab mini (trigger)="gotoDetail(todoItem)" [class.hide]="done.checked" [class.show]="!done.checked">
-          <glyph icon="mode_edit"></glyph>
-        </material-fab>
-        <material-fab mini (trigger)="remove(todoItem)" [class.hide]="!done.checked" [class.show]="done.checked">
-          <span class="alert"><glyph icon="delete"></glyph></span>
-        </material-fab>
+          <material-fab mini (trigger)="gotoDetail(todoItem)" [class.hide]="done.checked" [class.show]="!done.checked">
+            <glyph icon="edit"></glyph>
+          </material-fab>
+          <material-fab mini (trigger)="remove(todoItem)" [class.hide]="!done.checked" [class.show]="done.checked">
+            <span class="alert"><glyph icon="delete"></glyph></span>
+          </material-fab>
         </span>
       </li>
   </ul>

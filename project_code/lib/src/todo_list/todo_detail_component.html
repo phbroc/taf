@@ -9,7 +9,16 @@
             <material-input required [(ngModel)]="todoItem.title" ngControl="title" #title="ngForm" placeholder="title" label="titre" floatingLabel (change)="onChanged()"></material-input>
             <material-input [(ngModel)]="todoItem.tag" ngControl="tag" #tag="ngForm" placeholder="tag" label="tag" floatingLabel (change)="onTagChanged()"></material-input>
             <material-input multiline [(ngModel)]="todoItem.description" ngControl="description" #description="ngForm" label="description" floatingLabel (change)="onChanged()"></material-input>
-            <material-input [ngFormControl]="endControl" #end="ngForm" placeholder="date de fin" label="date de fin" floatingLabel (change)="onEndChanged()"></material-input>
+            <material-input [ngFormControl]="endControl" #end="ngForm" placeholder="date de fin" label="date de fin" floatingLabel (change)="onEndChanged()" showCharacterCount="false" class="inputDate"></material-input>
+            <div class="dateButton">
+                <material-button raised clear-size (trigger)="endsJ()">&nbsp;J_&nbsp;</material-button>
+                <material-button raised clear-size (trigger)="endsPlusOne()">&nbsp;+1&nbsp;</material-button>
+                <material-button raised clear-size (trigger)="endsPlusSeven()">&nbsp;+7&nbsp;</material-button>
+                <material-button raised clear-size (trigger)="endsMinusOne()">&nbsp;-1&nbsp;</material-button>
+                <material-button raised clear-size>&nbsp;S_&nbsp;</material-button>
+                <material-button raised clear-size>&nbsp;M_&nbsp;</material-button>
+            </div>
+            <p class="weekdaystr">{{dayStr}}</p>
         </form>
     </div>
 

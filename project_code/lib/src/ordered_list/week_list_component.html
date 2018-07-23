@@ -1,0 +1,52 @@
+<h3>Cette semaine</h3>
+
+<p *ngIf="todoItems.isEmpty">
+    Rien à faire cette semaine.
+</p>
+
+<div *ngIf="todoItems.isNotEmpty">
+    <ul>
+        <li *ngFor="let todoItem of todoItems; let i=index" [class.hide]="todoItem.version=='DD'">
+            <span class="inBackColorStripeP">
+                <div class="col{{todoItem.color}}">&nbsp;</div>
+            </span>
+
+            <material-checkbox #done materialTooltip="Marquer comme fait!" (change)="doneOnOff(todoItem,done.checked)" [(checked)]="todoItem.done">
+            </material-checkbox>
+
+            <span [class.done]="done.checked" class="thetitle">{{todoItem.title}}
+                <material-fab mini (trigger)="visible[i] = !visible[i]"
+                              popupSource
+                              #customsrc="popupSource"
+                              [class.hide]="done.checked"
+                              [class.show]="!done.checked"
+                >
+                    <glyph icon="pageview"></glyph>
+                </material-fab>
+                <material-fab mini (trigger)="remove(todoItem)" [class.hide]="!done.checked" [class.show]="done.checked">
+                    <span class="alert"><glyph icon="delete"></glyph></span>
+                </material-fab>
+            </span>
+
+            <material-popup [source]="customsrc"
+                            [(visible)]="visible[i]"
+                            [enforceSpaceConstraints]="true"
+                            [preferredPositions]="position"
+                            >
+                                <div class="detailPopup">
+                                    <p class="dateRight">{{giveWeekDay(todoItem.end)}}
+                                        <material-fab mini (trigger)="visible[i] = false">
+                                            <glyph icon="close"></glyph>
+                                        </material-fab>
+                                    </p>
+                                    <p>{{todoItem.description}}
+                                        <material-fab mini (trigger)="gotoDetail(todoItem)" [class.hide]="done.checked" [class.show]="!done.checked">
+                                            <glyph icon="edit"></glyph>
+                                        </material-fab>
+                                    </p>
+                                </div>
+            </material-popup>
+
+        </li>
+    </ul>
+</div>

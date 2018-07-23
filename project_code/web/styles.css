@@ -63,6 +63,71 @@ nav a.active {
 
 /* fin import TOH */
 
+/* pour les listes li */
+
+ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+li {
+  line-height: 1.3em;
+  position: relative;
+  margin-bottom:0.3em;
+}
+
+li:hover {
+  background-color: #EEEEEE;
+}
+
+li material-checkbox {
+  vertical-align: middle;
+  position: absolute;
+}
+
+li material-fab {
+  position: relative;
+  /*float: right;*/
+  vertical-align: middle;
+}
+
+.thetitle {
+  padding-top: 0.2em;
+  padding-left: 3em;
+  display: block;
+}
+
+.done {
+  text-decoration: line-through;
+}
+
+.hide {
+  /* display: none; impossible de jouer avec cette règle car c'est surchargé par la suite (ou alors sauf à mettre !important */
+  display: none !important;
+}
+
+.show {
+  /* display: inline-block; impossible de jouer avec cette règle car c'est surchargé par la suite (ou alors sauf à mettre !important */
+
+}
+
+.alert {
+  color: red;
+}
+
+span.inBackColorStripeP {
+  position: absolute;
+  top: 0.4em;
+}
+
+span.inBackColorStripeP>div {
+  width:0.4em;
+  height:1.6em;
+  display: block;
+}
+
+/* fin listes li */
+
 /* 80 CSS colors for background behind white text */
 
 .col0 {background-color: White;}

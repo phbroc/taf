@@ -9,6 +9,8 @@ import 'package:http/browser_client.dart';
 import 'package:taf/app_component.dart';
 //import 'package:taf/in_memory_data_service.dart';
 import 'package:http/http.dart';
+// test de pwa pour gérer le offline
+import 'package:pwa/client.dart' as pwa;
 
 //import 'package:taf/in_memory_data.dart';
 
@@ -20,4 +22,6 @@ void main() {
     [provide(Client, useFactory: () => new BrowserClient(), deps: [])]
     // []
   );
+  // register PWA ServiceWorker for offline caching.
+  new pwa.Client();
 }

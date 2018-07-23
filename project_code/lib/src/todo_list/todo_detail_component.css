@@ -2,6 +2,10 @@ material-input {
     width: 100%;
 }
 
+material-button {
+
+}
+
 .tdDetail {
     position: relative;
 }
@@ -15,6 +19,13 @@ span.inBackColorStripeH>div {
     width:0.4em;
     height:1.8em;
     display: block;
+}
+
+.weekdaystr {
+    clear: both;
+    font-size: 0.8em;
+    margin-top: 0;
+    padding-top: 0;
 }
 
 .infoId {
@@ -31,4 +42,13 @@ span.error {
     font-size: 0.8em;
     color: Red;
     padding: 0.4em 0;
+}
+
+.inputDate {
+    width:8em;
+    float:left;
+}
+
+.dateButton {
+    margin-top: 1em;
 }
