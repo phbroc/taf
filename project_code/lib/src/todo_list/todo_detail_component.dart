@@ -2,6 +2,7 @@ import 'package:angular_components/angular_components.dart';
 import 'package:angular/angular.dart';
 //import 'package:angular2/platform/common.dart';
 import 'package:angular_router/angular_router.dart';
+import '../route_paths.dart';
 // ajouté ci-dessous pour form validation
 import 'package:angular_forms/angular_forms.dart';
 import 'package:intl/intl.dart';
@@ -13,32 +14,55 @@ import '../tag_list/tag.dart';
 
 @Component(
   selector: 'todo-detail',
-  styleUrls: const ['todo_detail_component.css'],
+  styleUrls: ['todo_detail_component.css'],
   templateUrl: 'todo_detail_component.html',
-  directives: const [
-    CORE_DIRECTIVES,
-    materialDirectives,
+  directives: [
+    coreDirectives,
     // ajouté ci-dessous pour form validation
     formDirectives,
+    MaterialInputComponent,
+    MaterialButtonComponent,
+    materialInputDirectives,
   ],
 )
 
-class TodoDetailComponent implements OnInit {
-  @Input()
+class TodoDetailComponent implements OnActivate {
   Todo todoItem;
 
   final Location _location;
-  final RouteParams _routeParams;
+  //final RouteParams _routeParams; plus besoin de ça en DART 2.2
 
-  final nformat = new NumberFormat("000000");
-  final dformat = new DateFormat('yyyy-MM-dd HH:mm:ss');
+  final nformat = NumberFormat("000000");
+  final dformat = DateFormat('yyyy-MM-dd HH:mm:ss');
 
   Control endControl;
 
   String dayStr;
 
-  TodoDetailComponent(this._location, this._routeParams) {
+  TodoDetailComponent(this._location) {
 
+  }
+
+  @override
+  void onActivate(_, RouterState current) {
+    final String id = getId(current.parameters);
+    if (id != null) {
+      todoItem = InMemoryDataService.giveById(id);
+      print("detail..." + todoItem.title);
+      if (todoItem.end != null) {
+        String dstr = todoItem.end.toString();
+        String aaaa = dstr.substring(0,4);
+        String mm = dstr.substring(5,7);
+        String jj = dstr.substring(8,10);
+        String dstrjma = jj + "/" + mm + "/" + aaaa;
+        print("date... " + dstrjma);
+        // cette subtilité c'est à l'init du control qu'on peut passer une valeur!
+        this.endControl = Control(dstrjma, validateDate);
+      }
+      else {
+        this.endControl = Control('', validateDate);
+      }
+    }
   }
 
   // my first custom control!
@@ -78,42 +102,21 @@ class TodoDetailComponent implements OnInit {
     return errors;
   }
 
-  void ngOnInit() {
-    var id = _routeParams.get('id');
-    if (id != null) {
-      todoItem = InMemoryDataService.giveById(id);
-      print("detail..." + todoItem.title);
-      if (todoItem.end != null) {
-        String dstr = todoItem.end.toString();
-        String aaaa = dstr.substring(0,4);
-        String mm = dstr.substring(5,7);
-        String jj = dstr.substring(8,10);
-        String dstrjma = jj + "/" + mm + "/" + aaaa;
-        print("date... " + dstrjma);
-        // cette subtilité c'est à l'init du control qu'on peut passer une valeur!
-        this.endControl = new Control(dstrjma, validateDate);
-      }
-      else {
-        this.endControl = new Control('', validateDate);
-      }
-    }
-  }
-
   void goBack() => _location.back();
 
   void onChanged() {
     print("onChanged...");
-    var now = new DateTime.now();
+    var now = DateTime.now();
     todoItem.dayhour = dformat.format(now);
   }
 
   void onTagChanged() {
-    var now = new DateTime.now();
+    var now = DateTime.now();
     todoItem.dayhour = dformat.format(now);
 
     if (todoItem.tag != "") {
       todoItem.color = Converter.stringToModuloIndex(todoItem.tag, 80) +1;
-      InMemoryDataService.updateTagList(new Tag(todoItem.tag, todoItem.color));
+      InMemoryDataService.updateTagList(Tag(todoItem.tag, todoItem.color));
     }
     else todoItem.color = 0;
   }
@@ -136,7 +139,7 @@ class TodoDetailComponent implements OnInit {
   }
 
   DateTime todayEnds() {
-    var now = new DateTime.now();
+    var now = DateTime.now();
     String aaaa = now.year.toString();
     String mm = now.month.toString();
     if (mm.length == 1) mm = "0"+mm;
@@ -176,7 +179,7 @@ class TodoDetailComponent implements OnInit {
     todoItem.end = today;
     String dstrjma = formatDateStr(today);
     // cette subtilité init du control pour passer une valeur!
-    this.endControl = new Control(dstrjma, validateDate);
+    this.endControl = Control(dstrjma, validateDate);
   }
 
   void endsPlusOne() {
@@ -188,12 +191,12 @@ class TodoDetailComponent implements OnInit {
       newEnd = todoItem.end;
     }
     // print("add 1 day to ... "+newEnd.toString()+"...");
-    newEnd = newEnd.add(new Duration(days: 1));
+    newEnd = newEnd.add(Duration(days: 1));
     //print("new end ... "+newEnd.toString()+".");
     todoItem.end = newEnd;
     String dstrjma = formatDateStr(newEnd);
     // cette subtilité init du control pour passer une valeur!
-    this.endControl = new Control(dstrjma, validateDate);
+    this.endControl = Control(dstrjma, validateDate);
   }
 
   void endsMinusOne() {
@@ -205,12 +208,12 @@ class TodoDetailComponent implements OnInit {
       newEnd = todoItem.end;
     }
     // print("add 1 day to ... "+newEnd.toString()+"...");
-    newEnd = newEnd.subtract(new Duration(days: 1));
+    newEnd = newEnd.subtract(Duration(days: 1));
     //print("new end ... "+newEnd.toString()+".");
     todoItem.end = newEnd;
     String dstrjma = formatDateStr(newEnd);
     // cette subtilité init du control pour passer une valeur!
-    this.endControl = new Control(dstrjma, validateDate);
+    this.endControl = Control(dstrjma, validateDate);
   }
 
   void endsPlusSeven() {
@@ -222,12 +225,12 @@ class TodoDetailComponent implements OnInit {
       newEnd = todoItem.end;
     }
     // print("add 1 day to ... "+newEnd.toString()+"...");
-    newEnd = newEnd.add(new Duration(days: 7));
+    newEnd = newEnd.add(Duration(days: 7));
     //print("new end ... "+newEnd.toString()+".");
     todoItem.end = newEnd;
     String dstrjma = formatDateStr(newEnd);
     // cette subtilité init du control pour passer une valeur!
-    this.endControl = new Control(dstrjma, validateDate);
+    this.endControl = Control(dstrjma, validateDate);
   }
 
 

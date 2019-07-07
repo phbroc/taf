@@ -1,23 +1,25 @@
 import 'package:angular/angular.dart';
 import 'package:angular_router/angular_router.dart';
+import '../route_paths.dart';
 import '../../in_memory_data_service.dart';
 import 'tag.dart';
-//import '../todo_list/todo_list_component.dart';
+
 
 @Component(
   selector: 'tag-list',
-  styleUrls: const ['tag_list_component.css'],
+  styleUrls: ['tag_list_component.css'],
   templateUrl: 'tag_list_component.html',
-  directives: const [
-    CORE_DIRECTIVES,
-    //TodoListComponent,
-    ROUTER_DIRECTIVES,
+  directives: [
+    coreDirectives,
+    routerDirectives,
   ],
 )
 
 class TagListComponent implements OnInit {
   List<Tag> tagItems=[];
   final Router _router;
+
+  String listtagUrl(String tag) => RoutePaths.listtag.toUrl(parameters: {tagParam: '$tag'});
 
   TagListComponent(this._router);
 
@@ -26,16 +28,9 @@ class TagListComponent implements OnInit {
   }
 
 
-  void goTodoList(Tag t) => _router.navigate([
-    'List',
-    {'tag': t.tagName}
-  ]);
+  //Future<NavigationResult> goTodoList(Tag t) => _router.navigate(listtagUrl(t.tagName));
 
-
-
-  void goAccueil() => _router.navigate([
-    'Dashboard'
-  ]);
+  //Future<NavigationResult> goAccueil() => _router.navigate(RoutePaths.accueil.toUrl());
 
 
 

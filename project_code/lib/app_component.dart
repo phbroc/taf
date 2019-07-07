@@ -1,71 +1,66 @@
 // Copyright (c) 2017, philippe. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
+import 'dart:html';
+
 import 'package:angular/angular.dart';
 import 'package:angular_router/angular_router.dart';
 import 'package:angular_components/angular_components.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
+import 'src/routes.dart';
 import 'src/todo_list/todo.dart';
-import 'src/todo_list/todo_list_component.dart';
-import 'src/todo_list/todo_detail_component.dart';
-import 'src/tag_list/tag_list_component.dart';
+
+//import 'src/todo_list/todo_list_component.dart';
+//import 'src/todo_list/todo_add_component.dart';
+//import 'src/todo_list/todo_detail_component.dart';
+//import 'src/tag_list/tag_list_component.dart';
+//import 'src/dashboard_component.dart';
+
 import 'src/app_config.dart';
 import 'src/login_component.dart';
-import 'src/dashboard_component.dart';
+
 import 'in_memory_data_service.dart';
 import 'local_data_service.dart';
-
-// ajouté pour le service vers le serveur
 import 'server_data_service.dart';
-
+import 'event_bus.dart';
 
 
 // AngularDart info: https://webdev.dartlang.org/angular
 // Components info: https://webdev.dartlang.org/components
 
 // c'est étrange qu'il faille mettre cette valeur à cet endroit, mais ça marche quand même
-const APP_CONFIG = const OpaqueToken('app.config');
+const APP_CONFIG = OpaqueToken('app.config');
 
-// TODO: mystère pour comprendre cet écouteur d'évènement
-abstract class OnEvent {
-  /// Called when an event happens.
-  void onEvent();
-}
 
 @Component(
   selector: 'my-app',
-  styleUrls: const ['app_component.css'],
+  styleUrls: ['app_component.css'],
   templateUrl: 'app_component.html',
-  directives: const [ROUTER_DIRECTIVES,
-                      materialDirectives,],
-  providers: const [ROUTER_PROVIDERS,
-                    materialProviders,
-                    LocalDataService,
-                    InMemoryDataService,
-                    const Provider(APP_CONFIG, useFactory:tafConfigFactory),
-                    ServerDataService,
-                    // ajouté pour essayer d'couter l'évènement du composant enfant
-                    const Provider(OnEvent, useExisting: LoginComponent),
+  directives: [routerDirectives,
+                      ],
+  providers: [materialProviders,
+
+                    ClassProvider(ServerDataService),
+                    ClassProvider(LocalDataService),
+                    ClassProvider(InMemoryDataService),
+                    ClassProvider(EventBus),
+
+                    Provider(APP_CONFIG, useFactory:tafConfigFactory),
+
   ],
+  exports: [RoutePaths, Routes],
 )
 
-@RouteConfig(const [
-  const Redirect(path: '/', redirectTo: const ['Dashboard']),
-  const Route(path: '/accueil', name: 'Dashboard', component: DashboardComponent, useAsDefault: true),
-  const Route(path: '/login', name: 'Login', component:LoginComponent),
-  const Route(path: '/list/:tag', name: 'List', component:TodoListComponent),
-  const Route(path: '/detail/:id', name: 'Detail', component:TodoDetailComponent),
-  const Route(path: '/tag', name: 'Tag', component:TagListComponent),
-])
 
-class AppComponent implements OnInit, OnEvent{
+class AppComponent implements OnInit {
 
   //
   final LocalDataService localDataService;
   final ServerDataService serverDataService;
-  final String user;
-  final String title;
+  final EventBus eventBus;
+  String user;
+  String title;
   bool connected = false;
 
   final DateFormat dformat = new DateFormat('yyyy-MM-dd HH:mm:ss');
@@ -73,13 +68,21 @@ class AppComponent implements OnInit, OnEvent{
   String dayhourSynchro = "2017-01-01 12:00:00";
 
   //AppComponent(this.localDataService, this.inMemoryData);
-  AppComponent(@Inject(APP_CONFIG) AppConfig config, this.localDataService, this.serverDataService):title = config.title, user = config.user;
+  AppComponent(@Inject(APP_CONFIG) AppConfig config, this.localDataService, this.serverDataService, this.eventBus) {
+    title = config.title;
+    user = config.user;
 
-  // pour essayer d'écouter un évènement
-  @override
-  void onEvent() {
-    print('>>> An event was triggered!');
+    // pour essayer d'écouter un évènement
+    eventBus.onEventStreamLog.listen((Event e) {
+      print("event log ... "+e.type);
+      if (e.type == "login") connected = true;
+      if (e.type == "logoff") connected = false;
+    });
   }
+
+
+
+
 
   Future<Null> ngOnInit() async {
     print("ngOnInit()...");
@@ -97,9 +100,7 @@ class AppComponent implements OnInit, OnEvent{
 
 
 
-    // là je ne sais pas encore comment faire...
-    // TODO: je ne pense pas que ça soit la bonne méthode...
-    //await for(String s in LoginComponent.eventStream) { print(s); });
+
   }
 
 
@@ -117,7 +118,7 @@ class AppComponent implements OnInit, OnEvent{
     Todo todoItem;
     String token = localDataService.getToken(user);
     serverTodoItems = await serverDataService.synchroTodoList(InMemoryDataService.giveAllSince(dateSynchro), dayhourSynchro, user, token);
-    // todo: traiter le retour serveur
+    //
     if (serverTodoItems != null) serverTodoItems.forEach((serverTodoItem) {
       print("response server dealing with..." + serverTodoItem.id);
       todoItem = InMemoryDataService.giveById(serverTodoItem.id);

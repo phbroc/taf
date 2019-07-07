@@ -1,31 +1,45 @@
 import 'package:angular/angular.dart';
 import 'package:angular_components/angular_components.dart';
+import 'package:angular_components/material_popup/material_popup.dart';
+import 'package:angular_components/laminate/overlay/zindexer.dart';
+import 'package:angular_components/laminate/popup/module.dart';
+import 'package:angular_components/laminate/popup/popup.dart';
+
 import 'package:intl/intl.dart';
 import 'package:angular_router/angular_router.dart';
 import '../../in_memory_data_service.dart';
 import '../todo_list/todo.dart';
+import '../route_paths.dart';
 
 
 @Component(
   selector: 'week-list',
-  styleUrls: const ['week_list_component.css'],
+  styleUrls: ['week_list_component.css'],
   templateUrl: 'week_list_component.html',
-  directives: const [
-    CORE_DIRECTIVES,
-    materialDirectives,
+  directives: [
+    coreDirectives,
+    MaterialCheckboxComponent,
+    MaterialPopupComponent,
+    PopupSourceDirective,
 
+  ],
+  providers: [
+    materialProviders,
+    popupBindings, ClassProvider(ZIndexer)
   ],
 )
 
 class WeekListComponent implements OnInit {
   List<Todo> todoItems=[];
-  final nformat = new NumberFormat("000000");
-  final dformat = new DateFormat('yyyy-MM-dd HH:mm:ss');
+  final nformat = NumberFormat("000000");
+  final dformat = DateFormat('yyyy-MM-dd HH:mm:ss');
   // Keep track of each popup's visibility separately.
-  final visible = new List.filled(11, false);
+  final visible = List.filled(11, false);
   List<RelativePosition> position = [RelativePosition.AdjacentTop, RelativePosition.AdjacentTopLeft, RelativePosition.AdjacentTopRight, RelativePosition.AdjacentBottom, RelativePosition.AdjacentBottomRight, RelativePosition.AdjacentBottomLeft];
 
   final Router _router;
+
+  String _totoItemUrl(String id) => RoutePaths.detail.toUrl(parameters: {idParam: '$id'});
 
   WeekListComponent(this._router);
 
@@ -40,21 +54,18 @@ class WeekListComponent implements OnInit {
 
   void remove(Todo todoItem) {
     todoItem.version = "DD";
-    var now = new DateTime.now();
+    var now = DateTime.now();
     todoItem.dayhour = dformat.format(now);
   }
 
   void doneOnOff(Todo todoItem, bool checked) {
     print("doneOnOff... " + todoItem.id + " -> " + checked.toString());
-    var now = new DateTime.now();
+    var now = DateTime.now();
     todoItem.dayhour = dformat.format(now);
     todoItem.done = checked;
   }
 
-  void gotoDetail(Todo todoItem) => _router.navigate([
-    'Detail',
-    {'id': todoItem.id}
-  ]);
+  Future<NavigationResult> gotoDetail(Todo todoItem) => _router.navigate(_totoItemUrl(todoItem.id));
 
   String giveWeekDay(DateTime d) {
     String retStr;

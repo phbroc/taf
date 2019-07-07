@@ -11,16 +11,16 @@ class LocalDataService {
   //List<To do> to doList = <To do>[];
   Storage localStorage = window.localStorage;
 
-  final nformat = new NumberFormat("000000");
-  final dformat = new DateFormat('yyyy-MM-dd HH:mm:ss');
+  final nformat = NumberFormat("000000");
+  final dformat = DateFormat('yyyy-MM-dd HH:mm:ss');
 
   List<Todo> getTodoList() {
     print("get local... "); // + todoList.length.toString());
     List<Todo> todoList = <Todo>[];
     var jsonString = localStorage['tafJSON'];
-    if (jsonString != null) {
+    if ((jsonString != null) && (jsonString != "")) {
         print("json... " + jsonString);
-        List jsonList = JSON.decode(jsonString);
+        List jsonList = jsonDecode(jsonString);
 
         for(var i=0; i<jsonList.length; i++) {
           todoList.add(new Todo.fromJson(jsonList[i]));
@@ -39,7 +39,7 @@ class LocalDataService {
     var sb = new StringBuffer();
     sb.write('[');
     l.forEach((todoItem) {
-      sb.write(JSON.encode(todoItem.toJson())+",");
+      sb.write(jsonEncode(todoItem.toJson())+",");
     });
     if (l.length > 0) jsonData = sb.toString().substring(0, sb.toString().length-1);
     else jsonData = '[';

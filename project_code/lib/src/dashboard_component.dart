@@ -5,10 +5,11 @@ import 'ordered_list/week_list_component.dart';
 
 @Component(
   selector: 'dashboard',
-  styleUrls: const ['dashboard_component.css'],
+  styleUrls: ['dashboard_component.css'],
   templateUrl: 'dashboard_component.html',
-  directives: const [
-    CORE_DIRECTIVES,
+  directives: [
+    coreDirectives,
+    routerDirectives,
     TagListComponent,
     WeekListComponent,
   ],

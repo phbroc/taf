@@ -7,23 +7,26 @@ import 'dart:convert';
 
 @Injectable()
 class ServerDataService {
-  final Client _http;
+  // on initialise la propriété là, à la place de le faire dans le constructeur précédemment
+  static final Client _http = Client();
+
   // attention à l'encodage !
-  static final _headers = {'Content-Type': 'application/json; charset=utf-8'};
+  static final _headers = { 'Content-Type': 'application/json; charset=utf-8'};
 
-  static const _apiUrl = 'api/server/synchro.php';
-  //static const _apiUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/synchro20.php';
+  //static const _apiUrl = 'api/server/synchro.php';
+  static const _apiUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/synchro27.php';
 
-  static const _loginUrl = 'api/server/login.php';
-  //static const _loginUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/login11.php';
+  //static const _loginUrl = 'api/server/login.php';
+  static const _loginUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/login13.php';
 
-  static const _logoffUrl = 'api/server/logoff.php';
-  //static const _logoffUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/logoff7.php';
-  static const _checkTokenUrl = 'api/server/checkToken.php';
-  //static const _checkTokenUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/checkToken4.php';
+  //static const _logoffUrl = 'api/server/logoff.php';
+  static const _logoffUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/logoff11.php';
 
+  //static const _checkTokenUrl = 'api/server/checkToken.php';
+  static const _checkTokenUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/checkToken5.php';
 
-  ServerDataService(this._http);
+  //pas d'instantiation d'objet pour class injectable.
+  //ServerDataService(this._http);
 
   Future<String> connect(String u, String p) async {
     // simple test en GET pour debugger
@@ -44,7 +47,7 @@ class ServerDataService {
     try {
       print("login... " + u);
       final response = await _http.post(_loginUrl, headers: _headers,
-          body: JSON.encode({
+          body: jsonEncode({
             'user': u,
             'pass': p
           }));
@@ -81,7 +84,7 @@ class ServerDataService {
     try {
       print("logoff... " + u);
       final response = await _http.post(_logoffUrl, headers: _headers,
-          body: JSON.encode({
+          body: jsonEncode({
             'user': u,
             'token': t
           }));
@@ -117,7 +120,7 @@ class ServerDataService {
     try {
       print("checkToken... " + t);
       final response = await _http.post(_checkTokenUrl, headers: _headers,
-          body: JSON.encode({
+          body: jsonEncode({
             'user': u,
             'token': t
           }));
@@ -145,7 +148,7 @@ class ServerDataService {
     List todoPost = [];
     sb.write('[');
     l.forEach((todoItem) {
-      sb.write(JSON.encode(todoItem.toJson())+",");
+      sb.write(jsonEncode(todoItem.toJson())+",");
       todoPost.add(todoItem.toJson());
     });
     if (l.length > 0) jsonData = sb.toString().substring(0, sb.toString().length-1);
@@ -174,7 +177,7 @@ class ServerDataService {
 
     try {
       print("post... "); // + JSON.encode({'token':t,'user':u,'dayhour':dh,'data':todoPost}));
-      final response = await _http.post(_apiUrl, headers: _headers, body: JSON.encode({'token':t,'user':u,'dayhour':dh,'data':todoPost}));
+      final response = await _http.post(_apiUrl, headers: _headers, body: jsonEncode({'token':t,'user':u,'dayhour':dh,'data':todoPost}));
       print("response body... " + response.body);
       List jsonList = _extractData(response);
       print("server response found... " + jsonList.length.toString());
@@ -189,10 +192,10 @@ class ServerDataService {
 
   }
 
-  dynamic _extractData(Response resp) => JSON.decode(resp.body);
+  dynamic _extractData(Response resp) => jsonDecode(resp.body);
 
   Exception _handleError(dynamic e) {
-    print(e); // for demo purposes only
+    print('Server error; cause: $e'); // for demo purposes only
     return new Exception('Server error; cause: $e');
   }
 

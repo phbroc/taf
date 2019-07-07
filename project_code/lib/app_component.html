@@ -5,10 +5,11 @@
     <span class="smalldayhour">{{dayhourSynchro}}</span>
 </div>
 <nav>
-    <a [routerLink]="['Dashboard']">Accueil</a>
-    <a [routerLink]="['List', {tag:'all'}]">List</a>
-    <a [routerLink]="['Login']">{{connected ? 'Logoff' : 'Login'}}</a>
+    <a [routerLink]="RoutePaths.accueil.toUrl()" [routerLinkActive]="'active'">Accueil</a>
+    <a [routerLink]="RoutePaths.add.toUrl()" [routerLinkActive]="'active'">Ajouter</a>
+    <a [routerLink]="RoutePaths.list.toUrl()" [routerLinkActive]="'active'">List</a>
+    <a [routerLink]="RoutePaths.login.toUrl()" [routerLinkActive]="'active'">{{connected ? 'Logoff' : 'Login'}}</a>
 </nav>
 
 <p>&nbsp;</p>
-<router-outlet></router-outlet>
+<router-outlet [routes]="Routes.all"></router-outlet>

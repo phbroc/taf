@@ -1,6 +1,7 @@
 <?php
 // uniquement pendant les test :
-// header('Access-Control-Allow-Origin: *');
+// header('Access-Control-Allow-Origin: http://localhost:53322');
+header('Access-Control-Allow-Headers: Content-Type');
 header('Content-Type: application/json');
 header('Access-Control-Allow-Methods: GET, POST');
 
@@ -18,9 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
 	$user = $jsonObj->user;
 	$token = $jsonObj->token;
 	
-/*	
 
-*/
+
 		try {
 			$sql = "SELECT id FROM taf WHERE id LIKE'".$user."TOKEN%' AND data='".$token."' LIMIT 1";
 			$select = $conn->query($sql, PDO::FETCH_OBJ);

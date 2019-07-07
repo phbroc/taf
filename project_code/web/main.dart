@@ -2,26 +2,22 @@
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
 import 'package:angular/angular.dart';
-// import 'package:angular2/platform/browser.dart';
-// j'ajouterai cet import si j'utilise un vrai serveur
+import 'package:angular_router/angular_router.dart';
+import 'package:taf/app_component.template.dart' as ng;
 import 'package:http/browser_client.dart';
-
-import 'package:taf/app_component.dart';
-//import 'package:taf/in_memory_data_service.dart';
-import 'package:http/http.dart';
+import 'main.template.dart' as self;
 // test de pwa pour gérer le offline
 import 'package:pwa/client.dart' as pwa;
 
-//import 'package:taf/in_memory_data.dart';
+@GenerateInjector([
+  routerProvidersHash, // You can use routerProviders in production
+  ClassProvider(BrowserClient),
+])
+
+final InjectorFactory injector = self.injector$Injector;
 
 void main() {
-  bootstrap(AppComponent,
-    // [provide(Client, useClass: InMemoryDataService)]
-    // Using a real back end?
-    // Import browser_client.dart and change the above to:
-    [provide(Client, useFactory: () => new BrowserClient(), deps: [])]
-    // []
-  );
+  runApp(ng.AppComponentNgFactory, createInjector: injector);
   // register PWA ServiceWorker for offline caching.
-  new pwa.Client();
+  pwa.Client();
 }

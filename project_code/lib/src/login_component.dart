@@ -1,32 +1,37 @@
 import 'package:angular_components/angular_components.dart';
 import 'package:angular/angular.dart';
+
 //import 'package:angular_forms/angular_forms.dart'; serait utile si j'ajoute formDirectives dans les directives
+
 import 'package:taf/local_data_service.dart';
 import 'package:taf/server_data_service.dart';
 import 'dart:async';
+import '../event_bus.dart';
+import 'dart:html';
 
 @Component(
   selector: 'login',
-  styleUrls: const ['login_component.css'],
+  styleUrls: ['login_component.css'],
   templateUrl: 'login_component.html',
-  directives: const [CORE_DIRECTIVES,
-                      materialDirectives,],
+  directives: [coreDirectives,
+                MaterialInputComponent,
+                MaterialFabComponent,
+                MaterialIconComponent,
+                materialInputDirectives,
+              ],
+
 )
 
 class LoginComponent implements OnInit {
   //
   final LocalDataService localDataService;
   final ServerDataService serverDataService;
+  final EventBus eventBus;
   String pass = '';
   String user = 'PBD';
   bool connected = false;
 
-  // gestion d'un événement à pousser vers le parent avec ce stream.
-  final _eventStreamCtl = new StreamController<bool>();
-  @Output()
-  Stream<bool> get eventStream => _eventStreamCtl.stream;
-
-  LoginComponent(this.localDataService, this.serverDataService);
+  LoginComponent(this.localDataService, this.serverDataService, this.eventBus);
 
   @override
   Future<Null> ngOnInit() async {
@@ -36,8 +41,8 @@ class LoginComponent implements OnInit {
   }
 
   void pushEvent(bool c) {
-    // print(s);
-    _eventStreamCtl.add(c);
+    if (c) eventBus.onEventLog(Event("login"));
+    else eventBus.onEventLog(Event("logoff"));
   }
 
   Future<Null> connect() async {

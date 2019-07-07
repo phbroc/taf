@@ -1,0 +1,13 @@
+<div>
+    <material-input label="Que faut-il faire?"
+                    floatingLabel style="width:80%"
+                    [(ngModel)]="newTodo"
+                    (keyup.enter)="add()">
+    </material-input>
+
+    <material-fab mini raised
+                  (trigger)="add()"
+                  [disabled]="newTodo.isEmpty">
+        <material-icon icon="add"></material-icon>
+    </material-fab>
+</div>

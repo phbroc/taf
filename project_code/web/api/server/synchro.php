@@ -1,6 +1,7 @@
 <?php
 // uniquement pendant les test :
-// header('Access-Control-Allow-Origin: *');
+// header('Access-Control-Allow-Origin: http://localhost:53322');
+header('Access-Control-Allow-Headers: Content-Type');
 header('Access-Control-Allow-Methods: GET, POST');
 header('Content-Type: application/json; charset=utf-8');
 // attention, visiblement il faut faire gaffe à l'encodage
@@ -28,13 +29,6 @@ $conn->beginTransaction();
 	$dayhour_rq = $jsonObj->dayhour;
 	$user_rq = $jsonObj->user;
 
-
-// lieu pour debuguer 
-// $token = "EzwGHHbOiwuoUvVfKxnu";
-// $dayhour_rq = "2017-11-01 12:00:00";
-// $user_rq = "PBD";
-// $jsonObj = json_decode('{"data":[{"id":"PBD000014","dayhour":"2017-09-02 12:52:07","version":"02","data":{"title":"Encore autre chose ?","description":"test","done":false}}]}');
-// fin du lieu pour debuguer
 
 
 	$dayhour_sc = date('Y-m-d H:i:s');

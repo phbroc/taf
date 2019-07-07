@@ -1,27 +1,15 @@
 <!-- Components info: https://webdev.dartlang.org/components -->
-<h2 *ngIf="tag.isEmpty || tag=='all'">Tout ce qu'il y a.</h2>
-<h2 *ngIf="tag.isNotEmpty && tag!='all'">Tout ce qui concerne {{tag}}</h2>
+<h2 *ngIf="tag==null || tag=='all'">Tout ce qu'il y a.</h2>
+<h2 *ngIf="tag!=null && tag!='all'">Tout ce qui concerne {{tag}}</h2>
 
 
-<div>
-  <material-input label="Que faut-il faire?"
-                  floatingLabel style="width:80%"
-                  [(ngModel)]="newTodo"
-                  (keyup.enter)="add()">
-  </material-input>
+<todo-add></todo-add>
 
-  <material-fab mini raised
-                (trigger)="add()"
-                [disabled]="newTodo.isEmpty">
-    <glyph icon="add"></glyph>
-  </material-fab>
-</div>
-
-<p *ngIf="todoItems.isEmpty">
+<p *ngIf="todoItems.length == 0">
   La liste est vide. Commencer par ajouter des trucs à faire.
 </p>
 
-<div *ngIf="todoItems.isNotEmpty">
+<div *ngIf="todoItems.length > 0">
   <ul>
       <li *ngFor="let todoItem of todoItems; let i=index" [class.hide]="todoItem.version=='DD'">
         <span class="inBackColorStripeP">
@@ -33,10 +21,10 @@
 
         <span [class.done]="done.checked" class="thetitle">{{todoItem.title}}
           <material-fab mini (trigger)="gotoDetail(todoItem)" [class.hide]="done.checked" [class.show]="!done.checked">
-            <glyph icon="edit"></glyph>
+            <material-icon icon="edit"></material-icon>
           </material-fab>
           <material-fab mini (trigger)="remove(todoItem)" [class.hide]="!done.checked" [class.show]="done.checked">
-            <span class="alert"><glyph icon="delete"></glyph></span>
+            <span class="alert"><material-icon icon="delete"></material-icon></span>
           </material-fab>
         </span>
       </li>

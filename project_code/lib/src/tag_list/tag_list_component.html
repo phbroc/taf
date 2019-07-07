@@ -7,15 +7,11 @@
 <div *ngIf="tagItems.isNotEmpty">
     <ul class="allthetags">
         <li *ngFor="let tagItem of tagItems; let i=index">
-            <a [routerLink]="['List', {tag:tagItem.tagName}]">
+            <a [routerLink]="listtagUrl(tagItem.tagName)">
                 <span class="col{{tagItem.color}}">&nbsp;{{tagItem.tagName}}&nbsp;</span>
              </a>
         </li>
     </ul>
 </div>
-
-
-
-
 
 
