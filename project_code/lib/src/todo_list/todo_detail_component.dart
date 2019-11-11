@@ -10,7 +10,9 @@ import 'package:intl/intl.dart';
 import 'todo.dart';
 import 'package:taf/in_memory_data_service.dart';
 import '../utils/converter.dart';
+import '../utils/cryptographie.dart';
 import '../tag_list/tag.dart';
+import '../../event_bus.dart';
 
 @Component(
   selector: 'todo-detail',
@@ -26,20 +28,21 @@ import '../tag_list/tag.dart';
   ],
 )
 
-class TodoDetailComponent implements OnActivate {
+class TodoDetailComponent implements OnActivate, OnDestroy {
   Todo todoItem;
 
   final Location _location;
-  //final RouteParams _routeParams; plus besoin de ça en DART 2.2
 
   final nformat = NumberFormat("000000");
   final dformat = DateFormat('yyyy-MM-dd HH:mm:ss');
+  final EventBus eventBus;
 
   Control endControl;
 
   String dayStr;
+  bool todoChanged = false;
 
-  TodoDetailComponent(this._location) {
+  TodoDetailComponent(this._location, this.eventBus) {
 
   }
 
@@ -63,6 +66,13 @@ class TodoDetailComponent implements OnActivate {
         this.endControl = Control('', validateDate);
       }
     }
+    todoChanged = false;
+  }
+
+  @override
+  void ngOnDestroy() {
+    // implement ngOnDestroy, avant de quitter l'édition dire que ça a changé si c'est le cas
+    if (todoChanged) eventBus.onEventTodoChanged("todochanged");
   }
 
   // my first custom control!
@@ -105,14 +115,16 @@ class TodoDetailComponent implements OnActivate {
   void goBack() => _location.back();
 
   void onChanged() {
-    print("onChanged...");
+    // print("onChanged...");
     var now = DateTime.now();
     todoItem.dayhour = dformat.format(now);
+    todoChanged = true;
   }
 
   void onTagChanged() {
     var now = DateTime.now();
     todoItem.dayhour = dformat.format(now);
+    todoChanged = true;
 
     if (todoItem.tag != "") {
       todoItem.color = Converter.stringToModuloIndex(todoItem.tag, 80) +1;
@@ -121,8 +133,23 @@ class TodoDetailComponent implements OnActivate {
     else todoItem.color = 0;
   }
 
+  void onDescriptionChanged() {
+    print("onDescriptionChanged...");
+    var now = DateTime.now();
+    todoItem.dayhour = dformat.format(now);
+    todoChanged = true;
+
+    // rechercher s'il y a un mot à encrypter
+    String s = Cryptographie.findStringToEncrypt(todoItem.description);
+    print("mot à encrypter: "+s+".");
+  }
+
   void onEndChanged() {
     print("onEndChanged... " + endControl.value);
+    var now = DateTime.now();
+    todoItem.dayhour = dformat.format(now);
+    todoChanged = true;
+
     if (endControl.value == "") todoItem.end = null;
     else if (endControl.valid) {
       String aaaa = endControl.value.trim().substring(6,10);
@@ -232,6 +259,8 @@ class TodoDetailComponent implements OnActivate {
     // cette subtilité init du control pour passer une valeur!
     this.endControl = Control(dstrjma, validateDate);
   }
+
+
 
 
 }

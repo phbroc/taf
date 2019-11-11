@@ -5,22 +5,22 @@ version: 0.0.3
 #author: philippe <email@example.com>
 
 environment:
-  sdk: '>=2.4.0 <3.0.0'
+  sdk: '>=2.5.2 <3.0.0'
 
 dependencies:
-  angular: ^5.3.0
+  angular: ^6.0.0-alpha+1
   angular_forms: ^2.1.2
-  angular_components: ^0.13.0
+  angular_components: ^0.14.0-alpha+1
   angular_router: ^2.0.0-alpha+22
   http: ^0.12.0
   stream_transform: ^0.0.19
-  pwa: ^0.1.12
+  pwa: ^0.2.0
 
 dev_dependencies:
-  angular_test: ^2.3.0
-  build_runner: ^1.5.0
-  build_test: ^0.10.3
+  angular_test: ^2.3.1
+  build_runner: ^1.6.2
+  build_test: ^0.10.8
   build_web_compilers: ^2.1.0
   pedantic: ^1.7.0
-  test: ^1.6.0
+  test: ^1.6.4
 

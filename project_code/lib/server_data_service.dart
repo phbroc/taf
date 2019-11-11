@@ -3,7 +3,8 @@ import 'src/todo_list/todo.dart';
 import 'dart:async';
 import 'package:http/http.dart';
 import 'dart:convert';
-
+import 'package:intl/intl.dart';
+import 'src/app_config.dart';
 
 @Injectable()
 class ServerDataService {
@@ -13,36 +14,25 @@ class ServerDataService {
   // attention à l'encodage !
   static final _headers = { 'Content-Type': 'application/json; charset=utf-8'};
 
-  //static const _apiUrl = 'api/server/synchro.php';
-  static const _apiUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/synchro27.php';
+  static String _serverUrl;
+  static String _synchroUrl;
+  static String _loginUrl;
+  static String _logoffUrl;
+  static String _checkTokenUrl;
+  static final dformat = DateFormat('yyyy-MM-dd HH:mm:ss');
 
-  //static const _loginUrl = 'api/server/login.php';
-  static const _loginUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/login13.php';
+  //pas d'instantiation d'objet pour class injectable. ???
+  //ServerDataService(this._http); en fait ça fonctionne quand même!
 
-  //static const _logoffUrl = 'api/server/logoff.php';
-  static const _logoffUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/logoff11.php';
-
-  //static const _checkTokenUrl = 'api/server/checkToken.php';
-  static const _checkTokenUrl = 'http://localhost/~philippe/taf/databaseTest/api/server/checkToken5.php';
-
-  //pas d'instantiation d'objet pour class injectable.
-  //ServerDataService(this._http);
+  ServerDataService(AppConfig config) {
+    _serverUrl = config.apiEndpoint;
+    _synchroUrl = _serverUrl + 'api/server/synchro.php';
+    _loginUrl = _serverUrl + 'api/server/login.php';
+    _logoffUrl = _serverUrl + 'api/server/logoff.php';
+    _checkTokenUrl = _serverUrl + 'api/server/checkToken.php';
+  }
 
   Future<String> connect(String u, String p) async {
-    // simple test en GET pour debugger
-    /*
-    try {
-      print("calling server...");
-      final response = await _http.get(_loginUrl);
-      print("... " + response.body);
-      Map jsonData = _extractData(response);
-      if (jsonData['token'] != null) return jsonData['token'];
-      else return null;
-    } catch (e) {
-      throw _handleError(e);
-    }
-    */
-    // methode en POST
 
     try {
       print("login... " + u);
@@ -60,26 +50,9 @@ class ServerDataService {
       throw _handleError(e);
     }
 
-
   }
 
   Future<String> disconnect(String u, String t) async {
-    // test en GET
-    /*
-    try {
-      print("logoff... " + u);
-      final response = await _http.get(_logoffUrl);
-      print("response body... " + response.body);
-      Map jsonData = _extractData(response);
-      print("server response found... " + jsonData['token']);
-      if (jsonData['token'] != null) return jsonData['token'];
-      else return "";
-    }
-    catch (e) {
-      throw _handleError(e);
-    }
-    */
-    // methode en POST
 
     try {
       print("logoff... " + u);
@@ -100,22 +73,6 @@ class ServerDataService {
   }
 
   Future<bool> checkToken(String u, String t) async {
-    // simple test en GET pour debugger
-    /*
-      try {
-      print("checkToken... " + t);
-      final response = await _http.get(_checkTokenUrl);
-      print("response body... " + response.body);
-      Map jsonData = _extractData(response);
-      print("server response found... " + jsonData['connected'].toString());
-      return jsonData['connected'] == true;
-    }
-    catch (e) {
-      throw _handleError(e);
-    }
-    */
-
-    // methode en POST
 
     try {
       print("checkToken... " + t);
@@ -140,11 +97,11 @@ class ServerDataService {
 
   }
 
-  Future<List<Todo>> synchroTodoList(List<Todo> l, String dh, String u, String t) async {
+  Future<List<Todo>> synchroTodoList(List<Todo> l, DateTime dh, String u, String t) async {
     List<Todo> retTodoItems = <Todo>[];
     //Todo td;
     String jsonData = '';
-    var sb = new StringBuffer();
+    var sb = StringBuffer();
     List todoPost = [];
     sb.write('[');
     l.forEach((todoItem) {
@@ -155,38 +112,28 @@ class ServerDataService {
     else jsonData = '[';
     jsonData += ']';
 
-    // essai d'un simple get (fonctionne dans l'éditeur avant de passer en prod)
-    /*
     try {
-      print("calling server...");
-      final response = await _http.get(_apiUrl);
-
-      List jsonList = _extractData(response);
-      print("server response found... " + jsonList.length.toString());
-      for(var i=0; i<jsonList.length; i++) {
-        retTodoItems.add(new Todo.fromJson(jsonList[i]));
-      }
-
-      return retTodoItems;
-    } catch (e) {
-      throw _handleError(e);
-    }
-    */
-
-    // essai d'un post
-
-    try {
-      print("post... "); // + JSON.encode({'token':t,'user':u,'dayhour':dh,'data':todoPost}));
-      final response = await _http.post(_apiUrl, headers: _headers, body: jsonEncode({'token':t,'user':u,'dayhour':dh,'data':todoPost}));
+      print("post... "); // + jsonEncode({'token':t,'user':u,'dayhour':dformat.format(dh),'data':todoPost}));
+      final response = await _http.post(_synchroUrl, headers: _headers, body: jsonEncode({'token':t,'user':u,'dayhour':dformat.format(dh),'data':todoPost}));
       print("response body... " + response.body);
       List jsonList = _extractData(response);
       print("server response found... " + jsonList.length.toString());
-      for(var i=0; i<jsonList.length; i++) {
-        retTodoItems.add(new Todo.fromJson(jsonList[i]));
+
+      if (jsonList.length == 1) {
+        if (jsonList[0]['Exception'] != null) throw Exception(jsonList[0]['Exception']);
+        else {
+          retTodoItems.add(Todo.fromJson(jsonList[0]));
+        }
+      }
+      else if (jsonList.length > 1) {
+        for (var i = 0; i < jsonList.length; i++) {
+          retTodoItems.add(Todo.fromJson(jsonList[i]));
+        }
       }
 
       return retTodoItems;
     } catch (e) {
+      print("Exception in synchroTodoList..."+e.toString());
       throw _handleError(e);
     }
 
@@ -196,7 +143,7 @@ class ServerDataService {
 
   Exception _handleError(dynamic e) {
     print('Server error; cause: $e'); // for demo purposes only
-    return new Exception('Server error; cause: $e');
+    return Exception('Server error; cause: $e');
   }
 
 }

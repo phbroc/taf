@@ -6,6 +6,7 @@ import 'src/tag_list/tag.dart';
 class InMemoryDataService {
   static List<Todo> _todoDb;
   static List<Tag> _tagLi;
+  static String _cryptoKey;
 
   InMemoryDataService();
 
@@ -149,5 +150,13 @@ class InMemoryDataService {
 
 
     return weekTodo;
+  }
+
+  static void setCryptoKey(String ck) {
+    _cryptoKey = ck;
+  }
+
+  static String getCryptoKey() {
+    return _cryptoKey;
   }
 }

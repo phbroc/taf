@@ -1,4 +1,6 @@
 <!-- Components info: https://webdev.dartlang.org/components -->
+<h2>Paramètres</h2>
+<h3>Connection serveur</h3>
 <div>
     <material-input label="Mot de passe..."
                     autoFocus floatingLabel style="width:80%"
@@ -26,4 +28,14 @@
     </material-fab>
 
 
+</div>
+<h3>Autres paramètres internes</h3>
+<h4>Cryptographie</h4>
+<p>Dans la description un mot entre ][ sera crypté en utlisant la clé.</p>
+<div>
+    <material-input label="Clé de cryptographie..."
+                    autoFocus floatingLabel style="width:80%"
+                    [(ngModel)]="cryptoKey"
+                    type="password">
+    </material-input>
 </div>

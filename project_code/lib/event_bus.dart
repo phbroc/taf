@@ -8,8 +8,11 @@ class EventBus {
   final StreamController<Event> _onEventStreamLog = StreamController<Event>();
   Stream<Event> onEventStreamLog = null;
 
-  final StreamController<String> _onEventStreamTodoAdd = StreamController<String>.broadcast();
-  Stream<String> onEventStreamTodoAdd = null;
+  final StreamController<String> _onEventStreamTodoAdded = StreamController<String>.broadcast();
+  Stream<String> onEventStreamTodoAdded = null;
+
+  final StreamController<String> _onEventStreamTodoChanged = StreamController<String>.broadcast();
+  Stream<String> onEventStreamTodoChanged = null;
 
   static final EventBus _singleton = EventBus._internal();
 
@@ -19,14 +22,19 @@ class EventBus {
 
   EventBus._internal() {
     onEventStreamLog = _onEventStreamLog.stream;
-    onEventStreamTodoAdd = _onEventStreamTodoAdd.stream;
+    onEventStreamTodoAdded = _onEventStreamTodoAdded.stream;
+    onEventStreamTodoChanged = _onEventStreamTodoChanged.stream;
   }
 
   onEventLog(Event event) {
     _onEventStreamLog.add(event);
   }
 
-  onEventTodoAdd(String s) {
-    _onEventStreamTodoAdd.add(s);
+  onEventTodoAdded(String s) {
+    _onEventStreamTodoAdded.add(s);
+  }
+
+  onEventTodoChanged(String s) {
+    _onEventStreamTodoChanged.add(s);
   }
 }

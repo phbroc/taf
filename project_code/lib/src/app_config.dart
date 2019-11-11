@@ -4,7 +4,7 @@ class AppConfig {
   String user;
 }
 
-AppConfig tafConfigFactory() => new AppConfig()
-  ..apiEndpoint = 'some url .fr'
+AppConfig appConfigFactory() => AppConfig()
+  ..apiEndpoint = ''
   ..title = 'Trucs à faire'
   ..user = 'PBD';

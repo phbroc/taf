@@ -1,6 +1,6 @@
 <?php
 // uniquement pendant les test :
-// header('Access-Control-Allow-Origin: http://localhost:53322');
+header('Access-Control-Allow-Origin: http://localhost:53322');
 header('Access-Control-Allow-Headers: Content-Type');
 header('Access-Control-Allow-Methods: GET, POST');
 header('Content-Type: application/json; charset=utf-8');
@@ -48,9 +48,11 @@ $conn->beginTransaction();
 	// s'il y a une demande de supression d'un item, il faut mémoriser la liste des token des autres appareils connectés pour propager la supression de cet item dans les appareils connectés par la suite
     // donc premièrement on va établir la liste des token de l'utisateur, autres que le token en cours.
     // et on va mémoriser l'id du token si l'utilisateur a envoyé un token qui existe, afin de mettre à jour la date de ce token
+    
+    $dayhour_db = null;
     	
 	try {
-		$sql = "SELECT id, data FROM taf WHERE id LIKE'".$user_rq."TOKEN%'";
+		$sql = "SELECT id, dayhour, data FROM taf WHERE id LIKE'".$user_rq."TOKEN%'";
 		$select = $conn->query($sql, PDO::FETCH_OBJ);
 		
 		$identified = false;
@@ -59,32 +61,36 @@ $conn->beginTransaction();
 			else {
 				$identified = true;
 				$userTokenId = $row->id;
+				$dayhour_db = $row->dayhour;
 			}
 		}
 		if (strlen($userOtherTokens) > 1) $userOtherTokens = substr($userOtherTokens, 0, -1)."]";
 		else $userOtherTokens = "[]";
 	}
 	catch(PDOException $e) {
-		echo '[{"Caught exception": "'.$e->getMessage().'"}]';
+		echo '[{"Exception": "'.$e->getMessage().'"}]';
 		$conn = null;
 		die;
 	}
 	
 	if($identified) {
 		// Premièrement mettre à jour la date dayhour du token, pour signifier que cette connexion est active
-    	try {
-			$sql = "UPDATE taf SET dayhour='".$dayhour_sc."' WHERE id='".$userTokenId."'";
-			$count = $conn->exec($sql);
-			if ($count!=1) {
-				echo '[{"Caught exception": "error in updating token"}]';
+		if ($dayhour_sc != $dayhour_db)
+		{
+			try {
+				$sql = "UPDATE taf SET dayhour='".$dayhour_sc."' WHERE id='".$userTokenId."'";
+				$count = $conn->exec($sql);
+				if ($count!=1) {
+					echo '[{"Exception": "error in updating token : '.$userTokenId.' '.$dayhour_sc.'"}]';
+					$conn = null;
+					die;
+				}
+			}
+			catch(PDOException $e) {
+				echo '[{"Exception": "'.$e->getMessage().'"}]';
 				$conn = null;
 				die;
 			}
-		}
-		catch(PDOException $e) {
-			echo '[{"Caught exception": "'.$e->getMessage().'"}]';
-			$conn = null;
-			die;
 		}
 	}
 	
@@ -129,7 +135,7 @@ $conn->beginTransaction();
 				}
 			}
 			catch(PDOException $e) {
-				echo '[{"Caught exception": "'.$e->getMessage().'"}]';
+				echo '[{"Exception": "'.$e->getMessage().'"}]';
 				$conn->rollBack();
 				$conn = null;
 				die;
@@ -162,7 +168,7 @@ $conn->beginTransaction();
 						else $result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_js.'","version":"'.'DD'.'","data":'.$data_js_str.'},';
 					}
 					catch(PDOException $e) {
-						echo '[{"Caught exception": "'.$e->getMessage().'"}]';
+						echo '[{"Exception": "'.$e->getMessage().'"}]';
 						$conn->rollBack();
 						$conn = null;
 						die;
@@ -188,7 +194,7 @@ $conn->beginTransaction();
 							}
 						}
 						catch(PDOException $e) {
-							echo '[{"Caught exception": "'.$e->getMessage().'"}]';
+							echo '[{"Exception": "'.$e->getMessage().'"}]';
 							$conn->rollBack();
 							$conn = null;
 							die;
@@ -217,7 +223,7 @@ $conn->beginTransaction();
 						else $result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_js.'","version":"'.$version_js.'","data":'.$data_js_str.'},';
 					}
 					catch(PDOException $e) {
-						echo '[{"Caught exception": "'.$e->getMessage().'"}]';
+						echo '[{"Exception": "'.$e->getMessage().'"}]';
 						$conn->rollBack();
 						$conn = null;
 						die;
@@ -244,7 +250,7 @@ $conn->beginTransaction();
 						else $result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_js.'","version":"'.$version_js.'","data":'.$data_js_str.'},';
 					}
 					catch(PDOException $e) {
-						echo '[{"Caught exception": "'.$e->getMessage().'"}]';
+						echo '[{"Exception": "'.$e->getMessage().'"}]';
 						$conn->rollBack();
 						$conn = null;
 						die;
@@ -271,7 +277,7 @@ $conn->beginTransaction();
 						else $result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_js.'","version":"'.$version_js.'","data":'.$data_js_str.'},';
 					}
 					catch(PDOException $e) {
-						echo '[{"Caught exception": "'.$e->getMessage().'"}]';
+						echo '[{"Exception": "'.$e->getMessage().'"}]';
 						$conn->rollBack();
 						$conn = null;
 						die;
@@ -316,7 +322,7 @@ $conn->beginTransaction();
 						else $result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_js.'","version":"'.$version_js.'","data":'.$data_js_str.'},';
 					}
 					catch(PDOException $e) {
-						echo '[{"Caught exception": "'.$e->getMessage().'"}]';
+						echo '[{"Exception": "'.$e->getMessage().'"}]';
 						$conn->rollBack();
 						$conn = null;
 						die;
@@ -362,7 +368,7 @@ $conn->beginTransaction();
 					else $result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_js.'","version":"'.'DD'.'","data":'.$data_db.'},';
 				}
 				catch(PDOException $e) {
-					echo '[{"Caught exception": "'.$e->getMessage().'"}]';
+					echo '[{"Exception": "'.$e->getMessage().'"}]';
 					$conn->rollBack();
 					$conn = null;
 					die;
@@ -389,7 +395,7 @@ $conn->beginTransaction();
 						else $result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_js.'","version":"'.$version_js.'","data":'.$data_js_str.'},';
 					}
 					catch(PDOException $e) {
-						echo '[{"Caught exception": "'.$e->getMessage().'"}]';
+						echo '[{"Exception": "'.$e->getMessage().'"}]';
 						$conn->rollBack();
 						$conn = null;
 						die;
@@ -421,7 +427,7 @@ $conn->beginTransaction();
 						else $result .= '{"id":"'.$id_js.'","dayhour":"'.$dayhour_js.'","version":"'.$version_js.'","data":'.$data_js_str.'},';
 					}
 					catch(PDOException $e) {
-						echo '[{"Caught exception": "'.$e->getMessage().'"}]';
+						echo '[{"Exception": "'.$e->getMessage().'"}]';
 						$conn->rollBack();
 						$conn = null;
 						die;
@@ -483,7 +489,7 @@ $conn->beginTransaction();
 			}
 		}
 		catch(PDOException $e) {
-			echo '[{"Caught exception": "'.$e->getMessage().'"}]';
+			echo '[{"Exception": "'.$e->getMessage().'"}]';
 			$conn->rollBack();
 			$conn = null;
 			die;

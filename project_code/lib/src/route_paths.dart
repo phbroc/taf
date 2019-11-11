@@ -5,7 +5,7 @@ const idParam = 'id';
 
 class RoutePaths {
   static final accueil = RoutePath(path: 'accueil');
-  static final login = RoutePath(path: 'login');
+  static final params = RoutePath(path: 'params');
   static final list = RoutePath(path: 'list');
   static final listtag = RoutePath(path: '${list.path}/:$tagParam');
   static final detail = RoutePath(path: 'detail/:$idParam');

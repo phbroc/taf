@@ -11,14 +11,7 @@ import 'dart:async';
 import 'src/routes.dart';
 import 'src/todo_list/todo.dart';
 
-//import 'src/todo_list/todo_list_component.dart';
-//import 'src/todo_list/todo_add_component.dart';
-//import 'src/todo_list/todo_detail_component.dart';
-//import 'src/tag_list/tag_list_component.dart';
-//import 'src/dashboard_component.dart';
-
 import 'src/app_config.dart';
-import 'src/login_component.dart';
 
 import 'in_memory_data_service.dart';
 import 'local_data_service.dart';
@@ -29,24 +22,21 @@ import 'event_bus.dart';
 // AngularDart info: https://webdev.dartlang.org/angular
 // Components info: https://webdev.dartlang.org/components
 
-// c'est étrange qu'il faille mettre cette valeur à cet endroit, mais ça marche quand même
-const APP_CONFIG = OpaqueToken('app.config');
 
 
 @Component(
   selector: 'my-app',
   styleUrls: ['app_component.css'],
   templateUrl: 'app_component.html',
+  pipes: [commonPipes],
   directives: [routerDirectives,
                       ],
   providers: [materialProviders,
 
                     ClassProvider(ServerDataService),
                     ClassProvider(LocalDataService),
-                    ClassProvider(InMemoryDataService),
                     ClassProvider(EventBus),
-
-                    Provider(APP_CONFIG, useFactory:tafConfigFactory),
+                    FactoryProvider(AppConfig, appConfigFactory),
 
   ],
   exports: [RoutePaths, Routes],
@@ -62,21 +52,49 @@ class AppComponent implements OnInit {
   String user;
   String title;
   bool connected = false;
+  bool isOnline = false;
 
-  final DateFormat dformat = new DateFormat('yyyy-MM-dd HH:mm:ss');
+  final DateFormat dformat = DateFormat('yyyy-MM-dd HH:mm:ss');
   // initialisation de la date de synchro
-  String dayhourSynchro = "2017-01-01 12:00:00";
+  DateTime dtSynchronised = null;
+  DateTime dtLocaleStored = DateTime.now();
 
   //AppComponent(this.localDataService, this.inMemoryData);
-  AppComponent(@Inject(APP_CONFIG) AppConfig config, this.localDataService, this.serverDataService, this.eventBus) {
+  AppComponent(AppConfig config, this.localDataService, this.serverDataService, this.eventBus) {
     title = config.title;
     user = config.user;
 
     // pour essayer d'écouter un évènement
     eventBus.onEventStreamLog.listen((Event e) {
       print("event log ... "+e.type);
-      if (e.type == "login") connected = true;
+      if (e.type == "login") {
+        connected = true;
+        synchroServer();
+      }
       if (e.type == "logoff") connected = false;
+    });
+
+    eventBus.onEventStreamTodoChanged.listen((String s) {
+      print("event todo changed in appComponent... " + s);
+      checkStorage();
+    });
+
+    eventBus.onEventStreamTodoAdded.listen((String s) {
+      print("event todo added in appComponent... " + s);
+      checkStorage();
+    });
+
+    window.onOffline.listen((Event e) {
+      print("offline event...");
+      isOnline = false;
+    });
+
+    window.onOnline.listen((Event e) {
+      print("online event...");
+      isOnline = true;
+      // faire synchroServer
+      dtSynchronised = DateTime.now();
+      synchroServer();
     });
   }
 
@@ -89,35 +107,65 @@ class AppComponent implements OnInit {
     // important de démarrer avec ce reset pour commencer
     InMemoryDataService.resetDb();
     // récupérer la liste de todoItems qui serait en localhost
-    InMemoryDataService.startWithAll(localDataService.getTodoList());
+    InMemoryDataService.startWithAll(localDataService.getTodoList(user));
 
     String t = localDataService.getToken(user);
     if (t != null) connected = await serverDataService.checkToken(user, t);
     print("connected..." + connected.toString());
+
     // récupérer la date de la dernière synchro si mémorisée
-    String dh = localDataService.getDayhourSync(user);
-    if (dh != null) dayhourSynchro = dh;
+    DateTime dh = localDataService.getDayhourSync(user);
 
+    if (dh != null) {
+      dtSynchronised = dh;
+      print("dayhour... "+dformat.format(dh)+".");
+    }
 
+    if (connected) {
+      isOnline = true;
+      synchroServer();
+    }
+  }
 
-
+  void checkStorage() {
+    DateTime dtEvent = DateTime.now();
+    Duration difference = dtEvent.difference(dtLocaleStored);
+    if (difference.inSeconds > 30) {
+      dtLocaleStored = DateTime.now();
+      saveLocal();
+    }
+    // vérifier maintenant la synchro server, si onLine et dtSynchronised ancienne alors faire synchroServer.
+    if (isOnline) {
+      difference = dtEvent.difference(dtSynchronised);
+      print("check synchro... difference="+difference.inSeconds.toString());
+      if (difference.inSeconds > 240) {
+        synchroServer();
+      }
+    }
   }
 
 
-  Future<Null> onSave() async {
+  Future<Null> saveLocal() async {
     print("onsave()...");
     //localTodoItems = await todoListService.getTodoItems();
     //localTodoItems = InMemoryData.giveAll();
-    await localDataService.saveLocal(InMemoryDataService.giveAll());
+    await localDataService.saveTodoList(InMemoryDataService.giveAll(), user);
   }
 
-  Future<Null> onSynchro() async {
-    print("onsynchro()...");
-    DateTime dateSynchro = DateTime.parse(dayhourSynchro);
+  Future<Null> synchroServer() async {
+    if (dtSynchronised != null) print("onsynchro()... "+dformat.format(dtSynchronised)+".");
+    else print("onsynchro()...");
+
     List<Todo> serverTodoItems = [];
     Todo todoItem;
     String token = localDataService.getToken(user);
-    serverTodoItems = await serverDataService.synchroTodoList(InMemoryDataService.giveAllSince(dateSynchro), dayhourSynchro, user, token);
+    // si on connait déjà une date de synchro, ça a déjà été synchronisé
+    if (dtSynchronised != null) serverTodoItems = await serverDataService.synchroTodoList(InMemoryDataService.giveAllSince(dtSynchronised), dtSynchronised, user, token);
+    // sinon, il faut synchroniser tout ce qui est possible, je recherche à une date très ancienne
+    else {
+      serverTodoItems = await serverDataService.synchroTodoList(InMemoryDataService.giveAll(), DateTime.utc(1989, 11, 9), user, token);
+      dtSynchronised = DateTime.now();
+    }
     //
     if (serverTodoItems != null) serverTodoItems.forEach((serverTodoItem) {
       print("response server dealing with..." + serverTodoItem.id);
@@ -150,13 +198,13 @@ class AppComponent implements OnInit {
         InMemoryDataService.insert(serverTodoItem);
       }
       // mettre à jour la date de synchro en fonction des résultats du serveur
-      if (dateSynchro.isBefore(DateTime.parse(serverTodoItem.dayhour))) {
-        dayhourSynchro = serverTodoItem.dayhour;
-        localDataService.saveDayhourSync(user, dayhourSynchro);
+      if (dtSynchronised.isBefore(DateTime.parse(serverTodoItem.dayhour))) {
+        dtSynchronised = DateTime.parse(serverTodoItem.dayhour);
       }
+      localDataService.saveDayhourSync(user, dtSynchronised);
     });
     // faire un local save à la fin pour garder la base local en conformité
-    if (serverTodoItems.length > 0) await localDataService.saveLocal(InMemoryDataService.giveAll());
+    if (serverTodoItems.length > 0) await localDataService.saveTodoList(InMemoryDataService.giveAll(), user);
   }
 
 }

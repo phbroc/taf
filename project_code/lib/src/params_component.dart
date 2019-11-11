@@ -8,36 +8,51 @@ import 'package:taf/server_data_service.dart';
 import 'dart:async';
 import '../event_bus.dart';
 import 'dart:html';
+import 'app_config.dart';
+import '../in_memory_data_service.dart';
 
 @Component(
-  selector: 'login',
-  styleUrls: ['login_component.css'],
-  templateUrl: 'login_component.html',
-  directives: [coreDirectives,
-                MaterialInputComponent,
-                MaterialFabComponent,
-                MaterialIconComponent,
-                materialInputDirectives,
-              ],
-
+  selector: 'params',
+  styleUrls: ['params_component.css'],
+  templateUrl: 'params_component.html',
+  directives: [
+    coreDirectives,
+    MaterialInputComponent,
+    MaterialFabComponent,
+    MaterialIconComponent,
+    materialInputDirectives,
+  ],
+  providers: [
+    FactoryProvider(AppConfig, appConfigFactory),
+  ]
 )
 
-class LoginComponent implements OnInit {
+class ParamsComponent implements OnInit, OnDestroy {
   //
   final LocalDataService localDataService;
   final ServerDataService serverDataService;
   final EventBus eventBus;
   String pass = '';
-  String user = 'PBD';
+  String user;
   bool connected = false;
+  String cryptoKey = '';
 
-  LoginComponent(this.localDataService, this.serverDataService, this.eventBus);
+  ParamsComponent(AppConfig config, this.localDataService, this.serverDataService, this.eventBus):user=config.user;
 
   @override
   Future<Null> ngOnInit() async {
     String token = localDataService.getToken(user);
     if (token != null) connected = await serverDataService.checkToken(user, token);
     else connected = false;
+
+    cryptoKey = InMemoryDataService.getCryptoKey();
+  }
+
+  @override
+  void ngOnDestroy() {
+    // implement ngOnDestroy, avant de quitter le composant
+    print('onDestroy Params...');
+    InMemoryDataService.setCryptoKey(cryptoKey);
   }
 
   void pushEvent(bool c) {
@@ -66,7 +81,9 @@ class LoginComponent implements OnInit {
     print("userToken : " +userToken);
     localDataService.removeToken(user);
     connected = false;
-    if (userToken == "XX") localDataService.removeLocal();
+    if (userToken == "XX") localDataService.removeTodoList(user);
     pushEvent(connected);
   }
+
+
 }

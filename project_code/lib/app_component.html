@@ -1,15 +1,13 @@
 <h1>{{title}}</h1>
-<div class="serviceaction">
-    <button (click)="onSave()">Save local</button>
-    <button (click)="onSynchro()">Synchro server</button>
-    <span class="smalldayhour">{{dayhourSynchro}}</span>
-</div>
 <nav>
     <a [routerLink]="RoutePaths.accueil.toUrl()" [routerLinkActive]="'active'">Accueil</a>
-    <a [routerLink]="RoutePaths.add.toUrl()" [routerLinkActive]="'active'">Ajouter</a>
-    <a [routerLink]="RoutePaths.list.toUrl()" [routerLinkActive]="'active'">List</a>
-    <a [routerLink]="RoutePaths.login.toUrl()" [routerLinkActive]="'active'">{{connected ? 'Logoff' : 'Login'}}</a>
+    <a [routerLink]="RoutePaths.params.toUrl()" [routerLinkActive]="'active'">Params</a>
 </nav>
 
 <p>&nbsp;</p>
 <router-outlet [routes]="Routes.all"></router-outlet>
+
+<footer>
+    <hr>
+    <p>Synchronisé le {{dtSynchronised | date:"dd/MM/yyyy HH:mm"}}</p>
+</footer>

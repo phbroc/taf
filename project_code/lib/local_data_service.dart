@@ -14,28 +14,32 @@ class LocalDataService {
   final nformat = NumberFormat("000000");
   final dformat = DateFormat('yyyy-MM-dd HH:mm:ss');
 
-  List<Todo> getTodoList() {
+  List<Todo> getTodoList(String u) {
+    String key = 'tafJSON'+u;
     print("get local... "); // + todoList.length.toString());
     List<Todo> todoList = <Todo>[];
-    var jsonString = localStorage['tafJSON'];
+    var jsonString = localStorage[key];
     if ((jsonString != null) && (jsonString != "")) {
-        print("json... " + jsonString);
+        print("json... " + jsonString.length.toString() + " chars.");
+        // print(jsonString);
         List jsonList = jsonDecode(jsonString);
 
         for(var i=0; i<jsonList.length; i++) {
-          todoList.add(new Todo.fromJson(jsonList[i]));
+          todoList.add(Todo.fromJson(jsonList[i]));
         }
 
         return todoList;
     }
     else {
         print("empty local storage");
+        saveDayhourSync(u, null);
         return todoList;
     }
   }
 
-  void saveLocal(List<Todo> l) {
+  void saveTodoList(List<Todo> l, String u) {
     String jsonData = '';
+    String key = 'tafJSON'+u;
     var sb = new StringBuffer();
     sb.write('[');
     l.forEach((todoItem) {
@@ -44,12 +48,14 @@ class LocalDataService {
     if (l.length > 0) jsonData = sb.toString().substring(0, sb.toString().length-1);
     else jsonData = '[';
     jsonData += ']';
-    localStorage['tafJSON'] = jsonData;
-    print("serialisation : " + jsonData);
+    localStorage[key] = jsonData;
+    print("local serialisation " + l.length.toString() + " todoItems.");
   }
 
-  void removeLocal() {
-    localStorage['tafJSON'] = "";
+  void removeTodoList(String u) {
+    String key = 'tafJSON'+u;
+    localStorage[key] = "";
+    saveDayhourSync(u, null);
   }
 
   void saveToken(String u, String t) {
@@ -67,13 +73,17 @@ class LocalDataService {
     localStorage[key] = "";
   }
 
-  void saveDayhourSync(String u, String dh) {
+  void saveDayhourSync(String u, DateTime dh) {
     String key = 'tafDH'+u;
-    localStorage[key] = dh;
+    if (dh == null) {
+      localStorage[key] = "";
+    }
+    else localStorage[key] = dformat.format(dh);
   }
 
-  String getDayhourSync(String u) {
+  DateTime getDayhourSync(String u) {
     String key = 'tafDH'+u;
-    return localStorage[key];
+    if ((localStorage[key] != "") && (localStorage[key] != null)) return DateTime.parse(localStorage[key]);
+    else return null;
   }
 }

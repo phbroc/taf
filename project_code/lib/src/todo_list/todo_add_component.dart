@@ -9,19 +9,23 @@ import '../../in_memory_data_service.dart';
 import 'package:intl/intl.dart';
 import '../utils/converter.dart';
 import '../../event_bus.dart';
+import '../../src/app_config.dart';
 import 'dart:html';
 
 @Component(
-selector: 'todo-add',
-styleUrls: ['todo_add_component.css'],
-templateUrl: 'todo_add_component.html',
-directives: [
-  coreDirectives,
-  MaterialFabComponent,
-  MaterialInputComponent,
-  MaterialIconComponent,
-  materialInputDirectives,
-],
+  selector: 'todo-add',
+  styleUrls: ['todo_add_component.css'],
+  templateUrl: 'todo_add_component.html',
+  directives: [
+    coreDirectives,
+    MaterialFabComponent,
+    MaterialInputComponent,
+    MaterialIconComponent,
+    materialInputDirectives,
+  ],
+  providers: [
+    FactoryProvider(AppConfig, appConfigFactory),
+  ],
 )
 
 class TodoAddComponent implements OnActivate {
@@ -33,10 +37,10 @@ class TodoAddComponent implements OnActivate {
 
   String tag;
 
-  final String user = "PBD";
+  String user;
 
 
-  TodoAddComponent(this.router, this.eventBus);
+  TodoAddComponent(AppConfig config, this.router, this.eventBus):user = config.user;
 
   @override
   void onActivate(_, RouterState current) {
@@ -70,7 +74,7 @@ class TodoAddComponent implements OnActivate {
     // mais ça ne fonctionne pas si la page est filtrée par tag... je ne sais pas pourquoi
 
     // notification
-    eventBus.onEventTodoAdd("todoadded");
+    eventBus.onEventTodoAdded("todoadded");
 
     newTodo = '';
     // idee du dessous pour essayer de rafraichir le composant parent mais ça ne fonctionne pas.

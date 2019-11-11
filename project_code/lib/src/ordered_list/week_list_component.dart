@@ -10,6 +10,7 @@ import 'package:angular_router/angular_router.dart';
 import '../../in_memory_data_service.dart';
 import '../todo_list/todo.dart';
 import '../route_paths.dart';
+import '../../event_bus.dart';
 
 
 @Component(
@@ -38,10 +39,11 @@ class WeekListComponent implements OnInit {
   List<RelativePosition> position = [RelativePosition.AdjacentTop, RelativePosition.AdjacentTopLeft, RelativePosition.AdjacentTopRight, RelativePosition.AdjacentBottom, RelativePosition.AdjacentBottomRight, RelativePosition.AdjacentBottomLeft];
 
   final Router _router;
+  final EventBus eventBus;
 
   String _totoItemUrl(String id) => RoutePaths.detail.toUrl(parameters: {idParam: '$id'});
 
-  WeekListComponent(this._router);
+  WeekListComponent(this._router, this.eventBus);
 
   void ngOnInit() {
     todoItems = InMemoryDataService.giveWeekTodo();
@@ -56,6 +58,8 @@ class WeekListComponent implements OnInit {
     todoItem.version = "DD";
     var now = DateTime.now();
     todoItem.dayhour = dformat.format(now);
+    // notification todochanged save local
+    eventBus.onEventTodoChanged("todochanged");
   }
 
   void doneOnOff(Todo todoItem, bool checked) {
@@ -63,6 +67,8 @@ class WeekListComponent implements OnInit {
     var now = DateTime.now();
     todoItem.dayhour = dformat.format(now);
     todoItem.done = checked;
+    // notification todochanged save local
+    eventBus.onEventTodoChanged("todochanged");
   }
 
   Future<NavigationResult> gotoDetail(Todo todoItem) => _router.navigate(_totoItemUrl(todoItem.id));

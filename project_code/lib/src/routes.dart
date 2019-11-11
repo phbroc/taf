@@ -2,7 +2,7 @@ import 'package:angular_router/angular_router.dart';
 
 import 'route_paths.dart';
 import 'dashboard_component.template.dart' as dashboard_template;
-import 'login_component.template.dart' as login_template;
+import 'params_component.template.dart' as params_template;
 import 'todo_list/todo_list_component.template.dart' as todo_list_template;
 import 'todo_list/todo_detail_component.template.dart' as todo_detail_template;
 import 'todo_list/todo_add_component.template.dart' as todo_add_template;
@@ -17,9 +17,9 @@ class Routes {
     component: dashboard_template.DashboardComponentNgFactory,
   );
 
-  static final login = RouteDefinition(
-    routePath: RoutePaths.login,
-    component: login_template.LoginComponentNgFactory,
+  static final params = RouteDefinition(
+    routePath: RoutePaths.params,
+    component: params_template.ParamsComponentNgFactory,
   );
 
   static final list = RouteDefinition(
@@ -49,7 +49,7 @@ class Routes {
 
   static final all = <RouteDefinition>[
     accueil,
-    login,
+    params,
     list,
     listtag,
     detail,
