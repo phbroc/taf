@@ -10,7 +10,7 @@ import 'package:intl/intl.dart';
 import '../utils/converter.dart';
 import '../../event_bus.dart';
 import '../../src/app_config.dart';
-import 'dart:html';
+
 
 @Component(
   selector: 'todo-add',
@@ -53,7 +53,7 @@ class TodoAddComponent implements OnActivate {
     print("add... "); // + current.parameters.toString());
     tag = getTag(current.parameters);
     var now = DateTime.now();
-    var id = user+nformat.format(InMemoryDataService.giveMaxTodoId()+1);
+    String id = user+nformat.format(InMemoryDataService.giveMaxTodoId()+1);
 
     List<String> decodeList = Converter.decodeNewTodo(newTodo);
     String addTag = decodeList[2];
@@ -74,7 +74,7 @@ class TodoAddComponent implements OnActivate {
     // mais ça ne fonctionne pas si la page est filtrée par tag... je ne sais pas pourquoi
 
     // notification
-    eventBus.onEventTodoAdded("todoadded");
+    eventBus.onEventTodoAdded(id);
 
     newTodo = '';
     // idee du dessous pour essayer de rafraichir le composant parent mais ça ne fonctionne pas.

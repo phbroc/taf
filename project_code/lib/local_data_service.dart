@@ -40,7 +40,7 @@ class LocalDataService {
   void saveTodoList(List<Todo> l, String u) {
     String jsonData = '';
     String key = 'tafJSON'+u;
-    var sb = new StringBuffer();
+    var sb = StringBuffer();
     sb.write('[');
     l.forEach((todoItem) {
       sb.write(jsonEncode(todoItem.toJson())+",");
@@ -84,6 +84,32 @@ class LocalDataService {
   DateTime getDayhourSync(String u) {
     String key = 'tafDH'+u;
     if ((localStorage[key] != "") && (localStorage[key] != null)) return DateTime.parse(localStorage[key]);
+    else return null;
+  }
+
+  void saveTempTodo1(Todo t, String u) {
+    String jsonData = jsonEncode(t.toJson());
+    String key = 'tafJSONtemp1'+u;
+    localStorage[key] = jsonData;
+    print("local serialisation tempTodo1.");
+  }
+
+  Todo getTempTodo1(String u) {
+    String key = 'tafJSONtemp1'+u;
+    if ((localStorage[key] != "") && (localStorage[key] != null)) return Todo.fromJson(jsonDecode(localStorage[key]));
+    else return null;
+  }
+
+  void saveTempTodo2(Todo t, String u) {
+    String jsonData = jsonEncode(t.toJson());
+    String key = 'tafJSONtemp2'+u;
+    localStorage[key] = jsonData;
+    print("local serialisation tempTodo2.");
+  }
+
+  Todo getTempTodo2(String u) {
+    String key = 'tafJSONtemp2'+u;
+    if ((localStorage[key] != "") && (localStorage[key] != null)) return Todo.fromJson(jsonDecode(localStorage[key]));
     else return null;
   }
 }

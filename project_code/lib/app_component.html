@@ -1,10 +1,13 @@
 <h1>{{title}}</h1>
 <nav>
-    <a [routerLink]="RoutePaths.accueil.toUrl()" [routerLinkActive]="'active'">Accueil</a>
-    <a [routerLink]="RoutePaths.params.toUrl()" [routerLinkActive]="'active'">Params</a>
+    <a [routerLink]="RoutePaths.accueil.toUrl()" [routerLinkActive]="'active'">
+        <material-icon icon="home"></material-icon>
+    </a>
+    <a [routerLink]="RoutePaths.params.toUrl()" [routerLinkActive]="'active'">
+        <material-icon icon="settings_applications"></material-icon>
+    </a>
 </nav>
-
-<p>&nbsp;</p>
+<hr class="clear">
 <router-outlet [routes]="Routes.all"></router-outlet>
 
 <footer>

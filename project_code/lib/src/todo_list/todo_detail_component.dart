@@ -72,7 +72,7 @@ class TodoDetailComponent implements OnActivate, OnDestroy {
   @override
   void ngOnDestroy() {
     // implement ngOnDestroy, avant de quitter l'édition dire que ça a changé si c'est le cas
-    if (todoChanged) eventBus.onEventTodoChanged("todochanged");
+    if (todoChanged) eventBus.onEventTodoChanged(todoItem.id);
   }
 
   // my first custom control!

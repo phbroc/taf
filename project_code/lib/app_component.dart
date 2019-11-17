@@ -30,6 +30,7 @@ import 'event_bus.dart';
   templateUrl: 'app_component.html',
   pipes: [commonPipes],
   directives: [routerDirectives,
+                MaterialIconComponent,
                       ],
   providers: [materialProviders,
 
@@ -59,6 +60,10 @@ class AppComponent implements OnInit {
   DateTime dtSynchronised = null;
   DateTime dtLocaleStored = DateTime.now();
 
+  // deux todoItems temporaires pour faire des micro sauvegardes.
+  Todo tempTodo1;
+  Todo tempTodo2;
+
   //AppComponent(this.localDataService, this.inMemoryData);
   AppComponent(AppConfig config, this.localDataService, this.serverDataService, this.eventBus) {
     title = config.title;
@@ -76,11 +81,16 @@ class AppComponent implements OnInit {
 
     eventBus.onEventStreamTodoChanged.listen((String s) {
       print("event todo changed in appComponent... " + s);
+      // memoriser les microchangements
+      tempTodo2 = tempTodo1;
+      tempTodo1 = InMemoryDataService.giveById(s);
       checkStorage();
     });
 
     eventBus.onEventStreamTodoAdded.listen((String s) {
       print("event todo added in appComponent... " + s);
+      tempTodo2 = tempTodo1;
+      tempTodo1 = InMemoryDataService.giveById(s);
       checkStorage();
     });
 
@@ -92,9 +102,6 @@ class AppComponent implements OnInit {
     window.onOnline.listen((Event e) {
       print("online event...");
       isOnline = true;
-      // faire synchroServer
-      dtSynchronised = DateTime.now();
-      synchroServer();
     });
   }
 
@@ -110,7 +117,12 @@ class AppComponent implements OnInit {
     InMemoryDataService.startWithAll(localDataService.getTodoList(user));
 
     String t = localDataService.getToken(user);
-    if (t != null) connected = await serverDataService.checkToken(user, t);
+
+    try {
+      if (t != null) connected = await serverDataService.checkToken(user, t);
+    } catch (e) {
+      print("error calling network");
+    }
     print("connected..." + connected.toString());
 
     // récupérer la date de la dernière synchro si mémorisée
@@ -127,18 +139,26 @@ class AppComponent implements OnInit {
     }
   }
 
-  void checkStorage() {
+  Future<Null> checkStorage() async {
     DateTime dtEvent = DateTime.now();
     Duration difference = dtEvent.difference(dtLocaleStored);
     if (difference.inSeconds > 30) {
       dtLocaleStored = DateTime.now();
       saveLocal();
     }
+    else {
+      if (tempTodo1 != null) await localDataService.saveTempTodo1(tempTodo1, user);
+      if (tempTodo2 != null) await localDataService.saveTempTodo2(tempTodo2, user);
+    }
     // vérifier maintenant la synchro server, si onLine et dtSynchronised ancienne alors faire synchroServer.
     if (isOnline) {
+      if (!connected) {
+        String t = localDataService.getToken(user);
+        if (t != null) connected = await serverDataService.checkToken(user, t);
+      }
       difference = dtEvent.difference(dtSynchronised);
       print("check synchro... difference="+difference.inSeconds.toString());
-      if (difference.inSeconds > 240) {
+      if ((difference.inSeconds > 240) && connected) {
         synchroServer();
       }
     }

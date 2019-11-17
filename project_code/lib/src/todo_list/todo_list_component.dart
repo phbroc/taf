@@ -121,7 +121,7 @@ class TodoListComponent implements OnActivate, AfterChanges, AfterViewChecked {
     var now = DateTime.now();
     todoItem.dayhour = dformat.format(now);
     // sauvegarde en local autant que possible
-    eventBus.onEventTodoChanged("todochanged");
+    eventBus.onEventTodoChanged(todoItem.id);
   }
 
 
@@ -135,7 +135,7 @@ class TodoListComponent implements OnActivate, AfterChanges, AfterViewChecked {
       todoItem.dayhour = dformat.format(now);
       todoItem.done = checked;
       // sauvegarde en local autant que possible, notification
-      eventBus.onEventTodoChanged("todochanged");
+      eventBus.onEventTodoChanged(todoItem.id);
     }
   }
 

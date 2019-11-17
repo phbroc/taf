@@ -21,10 +21,10 @@
                               [class.hide]="done.checked"
                               [class.show]="!done.checked"
                 >
-                    <glyph icon="pageview"></glyph>
+                    <material-icon icon="pageview"></material-icon>
                 </material-fab>
                 <material-fab mini (trigger)="remove(todoItem)" [class.hide]="!done.checked" [class.show]="done.checked">
-                    <span class="alert"><glyph icon="delete"></glyph></span>
+                    <span class="alert"><material-icon icon="delete"></material-icon></span>
                 </material-fab>
             </span>
 
@@ -36,12 +36,12 @@
                                 <div class="detailPopup">
                                     <p class="dateRight">{{giveWeekDay(todoItem.end)}}
                                         <material-fab mini (trigger)="visible[i] = false">
-                                            <glyph icon="close"></glyph>
+                                            <material-icon icon="close"></material-icon>
                                         </material-fab>
                                     </p>
                                     <p>{{todoItem.description}}
                                         <material-fab mini (trigger)="gotoDetail(todoItem)" [class.hide]="done.checked" [class.show]="!done.checked">
-                                            <glyph icon="edit"></glyph>
+                                            <material-icon icon="edit"></material-icon>
                                         </material-fab>
                                     </p>
                                 </div>

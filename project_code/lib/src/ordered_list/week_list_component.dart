@@ -22,7 +22,8 @@ import '../../event_bus.dart';
     MaterialCheckboxComponent,
     MaterialPopupComponent,
     PopupSourceDirective,
-
+    MaterialIconComponent,
+    MaterialFabComponent,
   ],
   providers: [
     materialProviders,
@@ -59,7 +60,7 @@ class WeekListComponent implements OnInit {
     var now = DateTime.now();
     todoItem.dayhour = dformat.format(now);
     // notification todochanged save local
-    eventBus.onEventTodoChanged("todochanged");
+    eventBus.onEventTodoChanged(todoItem.id);
   }
 
   void doneOnOff(Todo todoItem, bool checked) {
@@ -68,7 +69,7 @@ class WeekListComponent implements OnInit {
     todoItem.dayhour = dformat.format(now);
     todoItem.done = checked;
     // notification todochanged save local
-    eventBus.onEventTodoChanged("todochanged");
+    eventBus.onEventTodoChanged(todoItem.id);
   }
 
   Future<NavigationResult> gotoDetail(Todo todoItem) => _router.navigate(_totoItemUrl(todoItem.id));

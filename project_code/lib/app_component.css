@@ -2,14 +2,12 @@
     /* This is equivalent of the 'body' selector of a page. */
 }
 
+
+
 .serviceaction {
     padding: 0.4em 0;
 }
 
-footer {
-    margin-top: 2em;
-    font-size: 0.8em;
-    color: gray;
-}
+
 
 
