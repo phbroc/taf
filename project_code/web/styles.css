@@ -77,6 +77,10 @@ nav a.active {
 
 /* fin import TOH */
 
+p {
+  line-height: 1.8em;
+}
+
 /* pour les listes li */
 
 ul {
@@ -85,7 +89,7 @@ ul {
 }
 
 li {
-  line-height: 1.3em;
+  line-height: 1.8em;
   position: relative;
   margin-bottom:0.3em;
 }
@@ -104,6 +108,45 @@ li material-fab {
   /*float: right;*/
   vertical-align: middle;
 }
+
+/* weeklist */
+
+.detailPopup {
+  padding: 0 0.5em;
+}
+
+.dateRight {
+  text-align: right;
+}
+
+
+/* fin weeklist */
+
+/* liste de tags */
+
+
+ul.allthetags {
+  padding:0;
+}
+
+ul.allthetags>li{
+  list-style-type: none;
+  display: inline-block;
+  margin: 0.3em;
+  line-height: 1.3em;
+}
+
+ul.allthetags>li>a {
+  color: white;
+  text-decoration: none;
+}
+
+ul.allthetags>li>a>span {
+  padding: 0.1em 0.3em;
+  border-radius: 0.8em;
+}
+
+/* fin liste de tags */
 
 .thetitle {
   padding-top: 0.2em;
@@ -124,6 +167,54 @@ li material-fab {
   /* display: inline-block; impossible de jouer avec cette règle car c'est surchargé par la suite (ou alors sauf à mettre !important */
 
 }
+
+
+/* todoItem detail */
+
+
+.tdDetail {
+  position: relative;
+}
+
+span.inBackColorStripeH {
+  position: absolute;
+  top: 0.1em;
+}
+
+span.inBackColorStripeH>div {
+  width:0.4em;
+  height:1.8em;
+  display: block;
+}
+
+.weekdaystr {
+  clear: both;
+  font-size: 0.8em;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.infoId {
+  font-size: 0.8em;
+  color: Gray;
+  padding: 0.4em 0;
+}
+
+h2.shiftRight {
+  padding-left: 0.6em;
+}
+
+span.error {
+  font-size: 0.8em;
+  color: Red;
+  padding: 0.4em 0;
+}
+
+.dateButton {
+  margin-top: 1em;
+}
+
+/* fin todoItem detail */
 
 .alert {
   color: red;

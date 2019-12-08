@@ -136,14 +136,14 @@ class InMemoryDataService {
     DateTime lastSunday = now.subtract(new Duration(days: today-0));
     DateTime weekStarts = new DateTime(lastSunday.year, lastSunday.month, lastSunday.day, 23, 59, 59);
     DateTime weekEnds = new DateTime(nextMonday.year, nextMonday.month, nextMonday.day, 0, 0, 0);
-    print("starts:"+weekStarts.toString()+" ends:"+weekEnds.toString());
+    // print("starts:"+weekStarts.toString()+" ends:"+weekEnds.toString());
 
     _todoDb.forEach((todoItem) {
       if (todoItem.end != null) {
-        print("todo "+todoItem.id+" ends "+todoItem.end.toString());
+        // print("todo "+todoItem.id+" ends "+todoItem.end.toString());
         if ((todoItem.end.isAfter(weekStarts)) && (todoItem.end.isBefore(weekEnds))) {
           weekTodo.add(todoItem);
-          print("week todo added");
+          // print("week todo added");
         }
       }
     });

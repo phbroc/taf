@@ -17,12 +17,12 @@
 
 
             <div class="dateButton">
-                <material-button raised clear-size (trigger)="endsJ()">&nbsp;J_&nbsp;</material-button>
-                <material-button raised clear-size (trigger)="endsPlusOne()">&nbsp;+1&nbsp;</material-button>
-                <material-button raised clear-size (trigger)="endsPlusSeven()">&nbsp;+7&nbsp;</material-button>
-                <material-button raised clear-size (trigger)="endsMinusOne()">&nbsp;-1&nbsp;</material-button>
-                <material-button raised clear-size>&nbsp;S_&nbsp;</material-button>
-                <material-button raised clear-size>&nbsp;M_&nbsp;</material-button>
+                <material-fab mini raised clear-size (trigger)="endsJ()" class="colorYellow">&nbsp;J_&nbsp;</material-fab>&nbsp;
+                <material-fab mini raised clear-size (trigger)="endsPlusOne()">&nbsp;+1&nbsp;</material-fab>&nbsp;
+                <material-fab mini raised clear-size (trigger)="endsMinusOne()">&nbsp;-1&nbsp;</material-fab>&nbsp;
+                <material-fab mini raised clear-size (trigger)="endsS()" class="colorOrange">&nbsp;S_&nbsp;</material-fab>&nbsp;
+                <material-fab mini raised clear-size (trigger)="endsPlusSeven()">&nbsp;+7&nbsp;</material-fab>&nbsp;
+                <material-fab mini raised clear-size  (trigger)="endsM()" class="colorGreen">&nbsp;M_&nbsp;</material-fab>
             </div>
             <p class="weekdaystr">{{dayStr}}</p>
         </form>
@@ -35,6 +35,8 @@
     </span>
 
 
-    <div class="infoId"><label>id: </label>{{todoItem.id}}</div>
-    <button (click)="goBack()">Back</button>
+    <div class="infoId"><label>id: </label>{{todoItem.id}}, <label>version: </label>{{todoItem.version}}</div>
+    <material-fab mini raised (trigger)="goBack()">
+        <material-icon icon="navigate_before"></material-icon>
+    </material-fab>
 </div>

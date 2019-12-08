@@ -6,49 +6,25 @@ material-button {
 
 }
 
-.tdDetail {
-    position: relative;
-}
-
-span.inBackColorStripeH {
-    position: absolute;
-    top: 0.1em;
-}
-
-span.inBackColorStripeH>div {
-    width:0.4em;
-    height:1.8em;
-    display: block;
-}
-
-.weekdaystr {
-    clear: both;
-    font-size: 0.8em;
-    margin-top: 0;
-    padding-top: 0;
-}
-
-.infoId {
-    font-size: 0.8em;
-    color: Gray;
-    padding: 0.4em 0;
-}
-
-h2.shiftRight {
-    padding-left: 0.6em;
-}
-
-span.error {
-    font-size: 0.8em;
-    color: Red;
-    padding: 0.4em 0;
-}
-
-.inputDate {
+material-input.inputDate {
     width:8em;
     float:left;
 }
 
-.dateButton {
-    margin-top: 1em;
+materiel-fab {
+}
+
+material-fab.colorYellow {
+    background-color: yellow;
+    color: black;
+}
+
+material-fab.colorOrange {
+    background-color: orange;
+    color: black;
+}
+
+material-fab.colorGreen {
+    background-color: green;
+    color: white;
 }

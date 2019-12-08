@@ -55,6 +55,10 @@ class LocalDataService {
   void removeTodoList(String u) {
     String key = 'tafJSON'+u;
     localStorage[key] = "";
+    key = 'tafJSONtemp1'+u;
+    localStorage[key] = "";
+    key = 'tafJSONtemp2'+u;
+    localStorage[key] = "";
     saveDayhourSync(u, null);
   }
 

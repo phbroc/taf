@@ -25,6 +25,8 @@ import '../../event_bus.dart';
     MaterialInputComponent,
     MaterialButtonComponent,
     materialInputDirectives,
+    MaterialFabComponent,
+    MaterialIconComponent,
   ],
 )
 
@@ -97,7 +99,7 @@ class TodoDetailComponent implements OnActivate, OnDestroy {
         String mm = c.value.trim().substring(3,5);
         String jj = c.value.trim().substring(0,2);
         String dstr = aaaa+"-"+mm+"-"+jj;
-        print("parsing... " + dstr);
+        // print("parsing... " + dstr);
         try {
           var d = DateTime.parse(dstr);
           dayStr = giveWeekDay(d.weekday);
@@ -138,7 +140,7 @@ class TodoDetailComponent implements OnActivate, OnDestroy {
     var now = DateTime.now();
     todoItem.dayhour = dformat.format(now);
     todoChanged = true;
-
+    todoItem.description = Converter.noLineBreak(todoItem.description);
     // rechercher s'il y a un mot à encrypter
     String s = Cryptographie.findStringToEncrypt(todoItem.description);
     print("mot à encrypter: "+s+".");
@@ -202,9 +204,43 @@ class TodoDetailComponent implements OnActivate, OnDestroy {
   }
 
   void endsJ() {
-    var today = todayEnds();
+    DateTime today = todayEnds();
     todoItem.end = today;
     String dstrjma = formatDateStr(today);
+    // cette subtilité init du control pour passer une valeur!
+    this.endControl = Control(dstrjma, validateDate);
+  }
+
+  void endsS() {
+    DateTime today = todayEnds();
+    int tillSunday = 7 - today.weekday;
+    DateTime newEnd = today.add(Duration(days: tillSunday));
+    todoItem.end = newEnd;
+    String dstrjma = formatDateStr(newEnd);
+    // cette subtilité init du control pour passer une valeur!
+    this.endControl = Control(dstrjma, validateDate);
+  }
+
+  void endsM() {
+    DateTime today = todayEnds();
+    DateTime newEnd = today;
+    int m = today.month;
+    switch (m) {
+      case 1: newEnd = DateTime.utc(today.year,m,31); break;
+      case 2: newEnd = DateTime.utc(today.year,m,28); break;
+      case 3: newEnd = DateTime.utc(today.year,m,31); break;
+      case 4: newEnd = DateTime.utc(today.year,m,30); break;
+      case 5: newEnd = DateTime.utc(today.year,m,31); break;
+      case 6: newEnd = DateTime.utc(today.year,m,30); break;
+      case 7: newEnd = DateTime.utc(today.year,m,31); break;
+      case 8: newEnd = DateTime.utc(today.year,m,31); break;
+      case 9: newEnd = DateTime.utc(today.year,m,30); break;
+      case 10: newEnd = DateTime.utc(today.year,m,31); break;
+      case 11: newEnd = DateTime.utc(today.year,m,30); break;
+      case 12: newEnd = DateTime.utc(today.year,m,31); break;
+    }
+    todoItem.end = newEnd;
+    String dstrjma = formatDateStr(newEnd);
     // cette subtilité init du control pour passer une valeur!
     this.endControl = Control(dstrjma, validateDate);
   }

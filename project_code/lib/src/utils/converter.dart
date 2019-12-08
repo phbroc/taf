@@ -49,4 +49,9 @@ class Converter {
     retList.add(tag);
     return retList;
   }
+
+  static String noLineBreak(String s) {
+    s = s.replaceAll(RegExp(r'\r?\n|\r'), " ");
+    return s;
+  }
 }

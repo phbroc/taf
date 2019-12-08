@@ -102,6 +102,7 @@ class AppComponent implements OnInit {
     window.onOnline.listen((Event e) {
       print("online event...");
       isOnline = true;
+      checkConnected();
     });
   }
 
@@ -111,19 +112,8 @@ class AppComponent implements OnInit {
 
   Future<Null> ngOnInit() async {
     print("ngOnInit()...");
-    // important de démarrer avec ce reset pour commencer
-    InMemoryDataService.resetDb();
-    // récupérer la liste de todoItems qui serait en localhost
-    InMemoryDataService.startWithAll(localDataService.getTodoList(user));
-
-    String t = localDataService.getToken(user);
-
-    try {
-      if (t != null) connected = await serverDataService.checkToken(user, t);
-    } catch (e) {
-      print("error calling network");
-    }
-    print("connected..." + connected.toString());
+    DateTime dloc;
+    DateTime dtemp;
 
     // récupérer la date de la dernière synchro si mémorisée
     DateTime dh = localDataService.getDayhourSync(user);
@@ -133,10 +123,54 @@ class AppComponent implements OnInit {
       print("dayhour... "+dformat.format(dh)+".");
     }
 
+
+    // important de démarrer avec ce reset pour commencer
+    InMemoryDataService.resetDb();
+    // récupérer la liste de todoItems qui serait en localhost
+    InMemoryDataService.startWithAll(localDataService.getTodoList(user));
+
+    if (InMemoryDataService.giveMaxTodoId()>0) {
+      // vérifier s'il y a des sauvegardes temporaires
+      tempTodo1 = localDataService.getTempTodo1(user);
+      if (tempTodo1 != null) {
+        dloc = DateTime.parse(InMemoryDataService
+            .giveById(tempTodo1.id)
+            .dayhour);
+        dtemp = DateTime.parse(tempTodo1.dayhour);
+        if (dloc.isBefore(dtemp)) InMemoryDataService.modify(tempTodo1);
+        print("memory refreshed with tempTodo1.");
+      }
+
+      tempTodo2 = localDataService.getTempTodo2(user);
+      if (tempTodo2 != null) {
+        dloc = DateTime.parse(InMemoryDataService
+            .giveById(tempTodo2.id)
+            .dayhour);
+        dtemp = DateTime.parse(tempTodo2.dayhour);
+        if (dloc.isBefore(dtemp)) InMemoryDataService.modify(tempTodo2);
+        print("memory refreshed with tempTodo2.");
+      }
+    }
+
+    await checkConnected();
+
     if (connected) {
       isOnline = true;
       synchroServer();
     }
+  }
+
+  Future<Null> checkConnected() async {
+    String t = localDataService.getToken(user);
+
+    try {
+      if (t != null) connected = await serverDataService.checkToken(user, t);
+      else connected = false;
+    } catch (e) {
+      print("error calling network");
+      connected = false;
+    }
+    print("connected..." + connected.toString());
   }
 
   Future<Null> checkStorage() async {
@@ -147,8 +181,8 @@ class AppComponent implements OnInit {
       saveLocal();
     }
     else {
-      if (tempTodo1 != null) await localDataService.saveTempTodo1(tempTodo1, user);
-      if (tempTodo2 != null) await localDataService.saveTempTodo2(tempTodo2, user);
+      if (tempTodo1 != null) localDataService.saveTempTodo1(tempTodo1, user);
+      if (tempTodo2 != null) localDataService.saveTempTodo2(tempTodo2, user);
     }
     // vérifier maintenant la synchro server, si onLine et dtSynchronised ancienne alors faire synchroServer.
     if (isOnline) {
@@ -165,11 +199,11 @@ class AppComponent implements OnInit {
   }
 
 
-  Future<Null> saveLocal() async {
+  void saveLocal() {
     print("onsave()...");
-    //localTodoItems = await todoListService.getTodoItems();
-    //localTodoItems = InMemoryData.giveAll();
-    await localDataService.saveTodoList(InMemoryDataService.giveAll(), user);
+    localDataService.saveTodoList(InMemoryDataService.giveAll(), user);
+    tempTodo1 = null;
+    tempTodo2 = null;
   }
 
   Future<Null> synchroServer() async {
@@ -224,7 +258,7 @@ class AppComponent implements OnInit {
       localDataService.saveDayhourSync(user, dtSynchronised);
     });
     // faire un local save à la fin pour garder la base local en conformité
-    if (serverTodoItems.length > 0) await localDataService.saveTodoList(InMemoryDataService.giveAll(), user);
+    if (serverTodoItems.length > 0) localDataService.saveTodoList(InMemoryDataService.giveAll(), user);
   }
 
 }

@@ -6,5 +6,5 @@ class AppConfig {
 
 AppConfig appConfigFactory() => AppConfig()
   ..apiEndpoint = ''
-  ..title = 'Trucs à faire'
+  ..title = 'TrucÀF!'
   ..user = 'PBD';

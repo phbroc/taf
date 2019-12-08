@@ -12,5 +12,5 @@
 
 <footer>
     <hr>
-    <p>Synchronisé le {{dtSynchronised | date:"dd/MM/yyyy HH:mm"}}</p>
+    <p>{{isOnline ? 'en ligne' : 'hors réseau'}} - {{connected ? 'identifié' : 'non identifié'}} - Synchronisé le {{dtSynchronised | date:"dd/MM/yyyy HH:mm"}} </p>
 </footer>

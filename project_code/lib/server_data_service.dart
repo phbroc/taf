@@ -115,7 +115,7 @@ class ServerDataService {
     try {
       print("post... "); // + jsonEncode({'token':t,'user':u,'dayhour':dformat.format(dh),'data':todoPost}));
       final response = await _http.post(_synchroUrl, headers: _headers, body: jsonEncode({'token':t,'user':u,'dayhour':dformat.format(dh),'data':todoPost}));
-      print("response body... " + response.body);
+      // print("response body... " + response.body);
       List jsonList = _extractData(response);
       print("server response found... " + jsonList.length.toString());
 

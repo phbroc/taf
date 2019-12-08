@@ -76,7 +76,7 @@ class TodoListComponent implements OnActivate, AfterChanges, AfterViewChecked {
     user = config.user;
     eventBus.onEventStreamTodoAdded.asBroadcastStream().listen((String s) {
       print("event todo added in list ... " + s);
-      if (s == "todoadded") refreshList();
+      refreshList();
     });
   }
 

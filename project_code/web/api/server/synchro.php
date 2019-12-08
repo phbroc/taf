@@ -1,6 +1,6 @@
 <?php
 // uniquement pendant les test :
-header('Access-Control-Allow-Origin: http://localhost:53322');
+// header('Access-Control-Allow-Origin: http://localhost:53322');
 header('Access-Control-Allow-Headers: Content-Type');
 header('Access-Control-Allow-Methods: GET, POST');
 header('Content-Type: application/json; charset=utf-8');
@@ -236,7 +236,8 @@ $conn->beginTransaction();
 				{
 					// situation normale où il s'agit d'un update
 					// DONE : UPDATE et passer la version à +1 de la version_js
-					$nextVersion = sprintf("%02d", 1+(int)$version_js);
+					if ($version_js != "99") $nextVersion = sprintf("%02d", 1+(int)$version_js);
+					else $nextVersion = "99";
 					//echo "UPDATE NORMAL ".$id_js." v".$nextVersion.", ";
 					// ATTENTION si $data_js_str est vide, y'a un problème! on va éviter d'écraser le précédent enregistrement
 					if (empty($data_js_str_slashed)) $data_js_str_slashed = '{"title":"[bug1] UPDATE with empty string!","description":"","done":null}';
@@ -262,7 +263,8 @@ $conn->beginTransaction();
 					// situation de conflit qui ne devrait pas arriver car la BDD est la seule à incrémenter les numéros de version
 					// pas très grave comme la version JSON semble plus élevée, on ferait alors un UPDATE WARNING
 					// DONE : UPDATE WARNING et passer la version à +1 de la version_js
-					$nextVersion = sprintf("%02d", 1+(int)$version_js);
+					if ($version_js != "99") $nextVersion = sprintf("%02d", 1+(int)$version_js);
+					else $nextVersion = "99";
 					//echo "UPDATE WARNING ".$id_js." v".$nextVersion.", ";
 					// TODO : ajouter une info de warning
 					// ATTENTION si $data_js_str est vide, y'a un problème! on va éviter d'écraser le précédent enregistrement
@@ -288,7 +290,8 @@ $conn->beginTransaction();
 					// situation de conflit où l'item présent en BDD a un numéro de version plus élevé que celui qui est poussé via le JSON
 					// il s'agit simplement une tentative de mettre à jour un item avec une version ancienne qui n'a pas bien été synchronisée
 					// DONE : gérer le conflit, peut-être un UPDATE en plaçant les valeurs en conflit (obsolètes) uniquement dans un key-value spécial du JSON?
-					$nextVersion = sprintf("%02d", 1+(int)$version_db);
+					if ($version_db != "99") $nextVersion = sprintf("%02d", 1+(int)$version_db);
+					else $nextVersion = "99";
 					//echo "UPDATE CONFLIT ".$id_js." v".$nextVersion.", ";
 					// TODO : placer les infos obsolètes dans data
 					// ATTENTION si $data_js_str est vide, y'a un problème! on va éviter d'écraser le précédent enregistrement
@@ -413,7 +416,8 @@ $conn->beginTransaction();
 					// situation de bug où l'item aurait disparu de la base de données, pas très grave il suffit de le reinsérer
 					// DONE : INSERT et augmenter le numéro de version +1
 					// TODO : ajouter une info que l'item est restauré en BDD ?
-					$nextVersion = sprintf("%02d", 1+(int)$version_js);
+					if ($version_js != "99") $nextVersion = sprintf("%02d", 1+(int)$version_js);
+					else $nextVersion = "99";
 					//echo "INSERT RESTAURE ".$id_js." v".$nextVersion.", ";
 					// ATTENTION si $data_js_str est vide, y'a un problème! on va éviter d'écraser le précédent enregistrement
 					if (empty($data_js_str_slashed)) $data_js_str_slashed = '{"title":"[bug5] INSERT with empty string!","description":"","done":null}';
@@ -498,6 +502,37 @@ $conn->beginTransaction();
 	
 	// fin de la partie qui récupère tout depuis la synchro
 	
+	
+	// début partie pour faire le ménage, des todo avec version XX trop anciens sont à supprimer, délai 6 mois
+	
+	if ($identified)
+	{
+		try {
+			$year = (int)substr($dayhour_rq,0,4);
+			$month = (int)substr($dayhour_rq,5,2);
+			$dayhour_purge = $dayhour_rq;
+			if ($month <= 6) {
+				$year = $year - 1;
+				$month = $month + 6;
+				$dayhour_purge = (string)$year."-".$month."-01 00:00:00";
+			}
+			else {
+				$month = $month - 6;
+				$dayhour_purge = (string)$year."-".$month."-01 00:00:00";
+			}
+			$sql_del = "DELETE FROM taf WHERE id>='".$user_rq."000000' AND id<='".$user_rq."999999' AND dayhour<'".$dayhour_purge."' and version='XX';";
+			$count = $conn->exec($sql_del);
+		}
+		catch(PDOException $e) {
+			echo '[{"Exception": "'.$e->getMessage().'"}]';
+			$conn->rollBack();
+			$conn = null;
+			die;
+		}
+	}
+	
+	
+	// fin de la partie qui fait le ménage
 	
 	// FIN
 	

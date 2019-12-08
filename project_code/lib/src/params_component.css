@@ -1,8 +1,0 @@
-.hide {
-    /* display: none; impossible de jouer avec cette règle car c'est surchargé par la suite (ou alors sauf à mettre !important */
-    display: none !important;
-}
-
-.show {
-    /* display: inline-block; impossible de jouer avec cette règle car c'est surchargé par la suite (ou alors sauf à mettre !important */
-}
