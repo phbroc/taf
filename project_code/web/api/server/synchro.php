@@ -5,7 +5,8 @@ header('Access-Control-Allow-Headers: Content-Type');
 header('Access-Control-Allow-Methods: GET, POST');
 header('Content-Type: application/json; charset=utf-8');
 // attention, visiblement il faut faire gaffe à l'encodage
-
+// pour debuguer avec cette class
+require ("simpleLog.php");
 // Connection data (server_address, database, name, poassword)
 require_once ("cnct.php");
 $conn = new PDO("mysql:host=".HOST."; dbname=".NAME, USER, PASS);
@@ -14,22 +15,33 @@ $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 //$conn->exec("SET CHARACTER SET utf8");      // Sets encoding UTF-8
 $conn->beginTransaction();
 
+$log = new Log('../../logs',Log::NONE);
+
 
  if ($_SERVER['REQUEST_METHOD'] === 'POST') 
  {
  	$input = file_get_contents('php://input');
  	
+ 	$log->log_debug('input: '.$input);
  	
- 
- 	$jsonObj = json_decode($input);
- 	// moment de la synchro
+ 	try {
+ 		$jsonObj = json_decode($input);
+ 		// moment de la synchro
+ 		
+ 	}
+ 	catch(Exception $e) {
+		echo '[{"Exception": "'.'problème json decode input'.'"}]';
+		$log->log_fatal('problème json decode input'); 
+		$conn = null;
+		die;
+	}	
  	
 	
 	$token = $jsonObj->token;
 	$dayhour_rq = $jsonObj->dayhour;
 	$user_rq = $jsonObj->user;
 
-
+	// $log->log_debug('data: '.implode($jsonObj->data));
 
 	$dayhour_sc = date('Y-m-d H:i:s');
  	
@@ -74,6 +86,7 @@ $conn->beginTransaction();
 	}
 	
 	if($identified) {
+		$log->log_info('identified'); 
 		// Premièrement mettre à jour la date dayhour du token, pour signifier que cette connexion est active
 		if ($dayhour_sc != $dayhour_db)
 		{
@@ -96,16 +109,24 @@ $conn->beginTransaction();
 	
 	// fin du test de la validité du token de connexion
 	
+	// compter les todos entrant
+	$c = 0;
+	if ($jsonObj->data != null) {
+		$c = count($jsonObj->data);
+ 	}
  	
+ 	$log->log_debug('incoming data: '.$c.' items');
  	// debut de la section qui traite les todo entrants
  	
- 	if($identified & $jsonObj->data)
+ 	if($identified & ($c > 0))
  	{	
+    	$log->log_debug('incoming todos...');
     	$userCurrent = ""; // on va essayer de mémoriser l'utilisateur pour minimiser le calcul du prochain index, puisque normalement l'utilisateur ne change pas.
     	$userCurrentMaxindex = 0;
 
     	while($item = array_shift($jsonObj->data))
 		{
+			$log->log_debug('todo id:'.$item->id);
 			// _js récupération des valeurs depuis le JSON
 			$id_js = $item->id;
 			$dayhour_js = $item->dayhour;
@@ -115,8 +136,17 @@ $conn->beginTransaction();
 			{
 				//j'ai un problème de mauvais encodage avec cette fonction ci-dessous, qui devrait fonctionner pourtant...
 				// en fait le problème était en haut de la page avec la connexion utf-8 à la bdd, je remets la ligne.
-				$data_js_str = json_encode($item->data, JSON_UNESCAPED_UNICODE);
-				$data_js_str_slashed = addcslashes($data_js_str, "'");
+				try {
+					$data_js_str = json_encode($item->data, JSON_UNESCAPED_UNICODE);
+				}
+				catch(Exception $e) {
+					echo '[{"Exception": "'.'problème json encode input data'.'"}]';
+					$log->log_fatal('problème json encode input data'); 
+					$conn = null;
+					die;
+				}		
+				$data_js_str_slashed = addcslashes($data_js_str, "'\\");
+				$log->log_debug('Data for '.$item->id.":".$data_js_str_slashed);
 			}
 			else {
 				$data_js_str = "{}";
@@ -312,7 +342,7 @@ $conn->beginTransaction();
 					// attention à bien garder le JSON_UNESCAPED_UNICODE
 					$data_db = json_encode($todoDbData, JSON_UNESCAPED_UNICODE);
 					$data_db = substr($data_db, 1, -1);
-					$data_db_slashed = addcslashes($data_db, "'");
+					$data_db_slashed = addcslashes($data_db, "'\\");
 					
 					try {
 						// bug corrigé ici, j'avais mis une mauvaise variable avec une valeur Null (c'était marqué $data_db_slashed, ça n'existe pas).
@@ -449,7 +479,7 @@ $conn->beginTransaction();
 	
 	// partie pour récupérer tout le reste depuis la synchro
 	
-	
+	$log->log_debug('dealing with other recent todo in database...');
 	
 	if ($identified)
 	{

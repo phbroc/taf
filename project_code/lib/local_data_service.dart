@@ -19,13 +19,20 @@ class LocalDataService {
     print("get local... "); // + todoList.length.toString());
     List<Todo> todoList = <Todo>[];
     var jsonString = localStorage[key];
+    var i = 0;
     if ((jsonString != null) && (jsonString != "")) {
         print("json... " + jsonString.length.toString() + " chars.");
         // print(jsonString);
-        List jsonList = jsonDecode(jsonString);
+        try {
+          List jsonList = jsonDecode(jsonString);
 
-        for(var i=0; i<jsonList.length; i++) {
-          todoList.add(Todo.fromJson(jsonList[i]));
+          for (i = 0; i < jsonList.length; i++) {
+            todoList.add(Todo.fromJson(jsonList[i]));
+          }
+        }
+        catch (e) {
+          print("Exception in synchroTodoList... i:"+i.toString()+", "+e.toString());
+          throw _handleError(e);
         }
 
         return todoList;
@@ -115,5 +122,10 @@ class LocalDataService {
     String key = 'tafJSONtemp2'+u;
     if ((localStorage[key] != "") && (localStorage[key] != null)) return Todo.fromJson(jsonDecode(localStorage[key]));
     else return null;
+  }
+
+  Exception _handleError(dynamic e) {
+    print('local data error; cause: $e'); // for demo purposes only
+    return Exception('local data error; cause: $e');
   }
 }

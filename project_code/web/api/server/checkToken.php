@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
 	$user = $jsonObj->user;
 	$token = $jsonObj->token;
 	
-
+	$id_db = "";
 
 		try {
 			$sql = "SELECT id FROM taf WHERE id LIKE'".$user."TOKEN%' AND data='".$token."' LIMIT 1";

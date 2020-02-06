@@ -99,22 +99,23 @@ class ServerDataService {
 
   Future<List<Todo>> synchroTodoList(List<Todo> l, DateTime dh, String u, String t) async {
     List<Todo> retTodoItems = <Todo>[];
-    //Todo td;
+    // j'ai un doute sur le fait de passer les data dans une chaine de caractères... j'enlève ce code.
+    /*
     String jsonData = '';
     var sb = StringBuffer();
-    List todoPost = [];
+    // List todoPost = [];
     sb.write('[');
     l.forEach((todoItem) {
-      sb.write(jsonEncode(todoItem.toJson())+",");
-      todoPost.add(todoItem.toJson());
+      sb.write(todoItem.toJson().toString()+",");
+      // todoPost.add(todoItem.toJson());
     });
     if (l.length > 0) jsonData = sb.toString().substring(0, sb.toString().length-1);
     else jsonData = '[';
     jsonData += ']';
-
+    */
     try {
-      print("post... "); // + jsonEncode({'token':t,'user':u,'dayhour':dformat.format(dh),'data':todoPost}));
-      final response = await _http.post(_synchroUrl, headers: _headers, body: jsonEncode({'token':t,'user':u,'dayhour':dformat.format(dh),'data':todoPost}));
+      print("post... " + l.length.toString()); //jsonEncode({'token':t,'user':u,'dayhour':dformat.format(dh),'data':l}));
+      final response = await _http.post(_synchroUrl, headers: _headers, body: jsonEncode({'token':t,'user':u,'dayhour':dformat.format(dh),'data':l}));
       // print("response body... " + response.body);
       List jsonList = _extractData(response);
       print("server response found... " + jsonList.length.toString());

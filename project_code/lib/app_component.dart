@@ -131,23 +131,32 @@ class AppComponent implements OnInit {
 
     if (InMemoryDataService.giveMaxTodoId()>0) {
       // vérifier s'il y a des sauvegardes temporaires
+      print("check tempTodo 1 et 2...");
       tempTodo1 = localDataService.getTempTodo1(user);
       if (tempTodo1 != null) {
-        dloc = DateTime.parse(InMemoryDataService
-            .giveById(tempTodo1.id)
-            .dayhour);
-        dtemp = DateTime.parse(tempTodo1.dayhour);
-        if (dloc.isBefore(dtemp)) InMemoryDataService.modify(tempTodo1);
+        print("tempTodo1... "+tempTodo1.id+" "+tempTodo1.dayhour.toString());
+        if (InMemoryDataService.giveById(tempTodo1.id)!=null) {
+          dloc = DateTime.parse(InMemoryDataService
+              .giveById(tempTodo1.id)
+              .dayhour);
+          dtemp = DateTime.parse(tempTodo1.dayhour);
+          if (dloc.isBefore(dtemp)) InMemoryDataService.modify(tempTodo1);
+        }
+        else InMemoryDataService.insert(tempTodo1);
         print("memory refreshed with tempTodo1.");
       }
 
       tempTodo2 = localDataService.getTempTodo2(user);
       if (tempTodo2 != null) {
-        dloc = DateTime.parse(InMemoryDataService
-            .giveById(tempTodo2.id)
-            .dayhour);
-        dtemp = DateTime.parse(tempTodo2.dayhour);
-        if (dloc.isBefore(dtemp)) InMemoryDataService.modify(tempTodo2);
+        print("tempTodo2... "+tempTodo2.id+" "+tempTodo2.dayhour.toString());
+        if (InMemoryDataService.giveById(tempTodo2.id)!=null) {
+          dloc = DateTime.parse(InMemoryDataService
+              .giveById(tempTodo2.id)
+              .dayhour);
+          dtemp = DateTime.parse(tempTodo2.dayhour);
+          if (dloc.isBefore(dtemp)) InMemoryDataService.modify(tempTodo2);
+        }
+        else InMemoryDataService.insert(tempTodo2);
         print("memory refreshed with tempTodo2.");
       }
     }

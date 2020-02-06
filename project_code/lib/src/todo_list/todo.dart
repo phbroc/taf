@@ -52,7 +52,10 @@ class Todo {
     return Todo(todo_js['id'], todo_js['dayhour'], todo_js['version'], _title, _description, _done, _tag, _color, _end, _priority);
   }
 
-  Map toJson() => {'id':id, 'dayhour':dayhour, 'version':version, 'data':{'title':title, 'description':description.replaceAll(new RegExp(r'\n'), '\\n'), 'done':done, 'tag':tag, 'color':color, 'end':end.toString(), 'priority':priority}};
+  Map toJson() {
+    String d = description.replaceAll(RegExp(r'\n'), '\\n');
+    return {'id':id, 'dayhour':dayhour, 'version':version, 'data':{'title':title, 'description':d, 'done':done, 'tag':tag, 'color':color, 'end':end.toString(), 'priority':priority}};
+  }
 
 }
 
