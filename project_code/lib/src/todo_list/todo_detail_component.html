@@ -10,7 +10,15 @@
 
             <material-input required [(ngModel)]="todoItem.title" ngControl="title" #title="ngForm" placeholder="title" label="titre" floatingLabel (change)="onChanged()"></material-input>
             <material-input [(ngModel)]="todoItem.tag" ngControl="tag" #tag="ngForm" placeholder="tag" label="tag" floatingLabel (change)="onTagChanged()"></material-input>
-            <material-input multiline [(ngModel)]="todoItem.description" ngControl="description" #description="ngForm" label="description" floatingLabel (change)="onDescriptionChanged()"></material-input>
+            <material-input multiline [(ngModel)]="todoItem.description" ngControl="description" #description="ngForm" label="description" floatingLabel [disabled]="lockDescr" (change)="onDescriptionChanged()"></material-input>
+            <p>
+                <material-checkbox #quickcb label="Rapide" (change)="quickOnOff(quickcb.checked)" [(checked)]="todoItem.quick" class="detailcb">
+                </material-checkbox>
+                <material-checkbox #cryptocb label="Crypto" [disabled]="!keyValid" (change)="cryptoOnOff(cryptocb.checked)" [(checked)]="todoItem.crypto" class="detailcb">
+                </material-checkbox>
+                <material-checkbox #donecb label="Fait !" (change)="doneOnOff(donecb.checked)" [(checked)]="todoItem.done" class="detailcb">
+                </material-checkbox>
+            </p>
 
             <!-- probleme de compil dans input ci-dessous -->
             <material-input [ngFormControl]="endControl" #end="ngForm" placeholder="date de fin" label="date de fin" floatingLabel (change)="onEndChanged()" [showCharacterCount]="false" class="inputDate"></material-input>

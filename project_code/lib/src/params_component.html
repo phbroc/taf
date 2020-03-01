@@ -31,11 +31,15 @@
 </div>
 <h3>Autres paramètres internes</h3>
 <h4>Cryptographie</h4>
-<p>Dans la description un mot entre ][ sera crypté en utlisant la clé.</p>
+<p>Valeur de la clé à utiliser en option sur les textes de description.</p>
 <div>
     <material-input label="Clé de cryptographie..."
+                    [ngFormControl]="ckeyControl"
                     autoFocus floatingLabel style="width:80%"
                     [(ngModel)]="cryptoKey"
                     type="password">
     </material-input>
+    <p><span [hidden]='ckeyControl.valid' class='error'>
+        <span *ngFor='let error of ckeyControl.errors?.keys'>{{error}} </span>
+    </span></p>
 </div>

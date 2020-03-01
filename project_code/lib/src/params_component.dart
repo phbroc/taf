@@ -1,5 +1,6 @@
 import 'package:angular_components/angular_components.dart';
 import 'package:angular/angular.dart';
+import 'package:angular_forms/angular_forms.dart';
 
 //import 'package:angular_forms/angular_forms.dart'; serait utile si j'ajoute formDirectives dans les directives
 
@@ -17,6 +18,8 @@ import '../in_memory_data_service.dart';
   templateUrl: 'params_component.html',
   directives: [
     coreDirectives,
+    // ajouté ci-dessous pour form validation
+    formDirectives,
     MaterialInputComponent,
     MaterialFabComponent,
     MaterialIconComponent,
@@ -37,6 +40,8 @@ class ParamsComponent implements OnInit, OnDestroy {
   bool connected = false;
   String cryptoKey = '';
 
+  Control ckeyControl = Control('');
+
   ParamsComponent(AppConfig config, this.localDataService, this.serverDataService, this.eventBus):user=config.user;
 
   @override
@@ -46,6 +51,11 @@ class ParamsComponent implements OnInit, OnDestroy {
     else connected = false;
 
     cryptoKey = InMemoryDataService.getCryptoKey();
+
+    if (cryptoKey != null) {
+      this.ckeyControl = Control(cryptoKey, validateCkey);
+    }
+    else this.ckeyControl = Control('', validateCkey);
   }
 
   @override
@@ -85,5 +95,20 @@ class ParamsComponent implements OnInit, OnDestroy {
     pushEvent(connected);
   }
 
+  // my first custom control!
+  Map<String, dynamic> validateCkey(AbstractControl c) {
+    Map<String, dynamic> errors = {};
+    // print('validateCkey: ${c.value}');
+    if (c.value != null) {
+      if (c.value.trim().length > 0) {
+        RegExp expTag = RegExp(r"^[a-zA-Z0-9]+$");
+        Match matches = expTag.firstMatch(c.value.trim());
+        if (matches == null) {
+          errors['Le format de la clé est incorrect. Caractères autorisés : alphanumériques'] = true;
+        }
+      }
+    }
+    return errors;
+  }
 
 }

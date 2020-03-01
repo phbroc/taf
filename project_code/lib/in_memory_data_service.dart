@@ -47,6 +47,8 @@ class InMemoryDataService {
       targetTodoItem.color = todoItemChanges.color;
       targetTodoItem.end = todoItemChanges.end;
       targetTodoItem.priority = todoItemChanges.priority;
+      targetTodoItem.quick = todoItemChanges.quick;
+      targetTodoItem.crypto = todoItemChanges.crypto;
     }
   }
 
@@ -153,7 +155,9 @@ class InMemoryDataService {
   }
 
   static void setCryptoKey(String ck) {
-    _cryptoKey = ck;
+    if (ck != null) _cryptoKey = ck.trim();
+    else _cryptoKey = "";
+    if (_cryptoKey.length == 0) _cryptoKey = null;
   }
 
   static String getCryptoKey() {

@@ -10,7 +10,7 @@ import 'package:intl/intl.dart';
 import 'todo.dart';
 import 'package:taf/in_memory_data_service.dart';
 import '../utils/converter.dart';
-import '../utils/cryptographie.dart';
+import '../utils/cryptography.dart';
 import '../tag_list/tag.dart';
 import '../../event_bus.dart';
 
@@ -27,6 +27,7 @@ import '../../event_bus.dart';
     materialInputDirectives,
     MaterialFabComponent,
     MaterialIconComponent,
+    MaterialCheckboxComponent,
   ],
 )
 
@@ -43,6 +44,10 @@ class TodoDetailComponent implements OnActivate, OnDestroy {
 
   String dayStr;
   bool todoChanged = false;
+  final String cryptoKey = InMemoryDataService.getCryptoKey();
+  // pour contrôler le composant et verrouiller des actions si les conditions pour la cryptographie ne sont pas remplies.
+  bool keyValid = false;
+  bool lockDescr = false;
 
   TodoDetailComponent(this._location, this.eventBus) {
 
@@ -67,13 +72,27 @@ class TodoDetailComponent implements OnActivate, OnDestroy {
       else {
         this.endControl = Control('', validateDate);
       }
+      // gérer l'encryptage avant de commencer si l'item est à décrypter
+      if (todoItem.crypto) {
+        if (cryptoKey != null) {
+          if (todoItem.description != null) todoItem.description = Cryptography.encode(todoItem.description, cryptoKey, false);
+          lockDescr = false;
+        }
+        else lockDescr = true;
+      }
     }
     todoChanged = false;
+    if (cryptoKey != null) keyValid = true;
   }
 
   @override
   void ngOnDestroy() {
     // implement ngOnDestroy, avant de quitter l'édition dire que ça a changé si c'est le cas
+    // gérer l'encryptage avant de partir si l'item est à crypter
+    if ((todoItem.crypto) && (cryptoKey != null)) {
+      if (todoItem.description != null) todoItem.description = Cryptography.encode(todoItem.description, cryptoKey, true);
+    }
+
     if (todoChanged) eventBus.onEventTodoChanged(todoItem.id);
   }
 
@@ -88,7 +107,7 @@ class TodoDetailComponent implements OnActivate, OnDestroy {
     }
     else if (c.value.trim().length > 0) {
       // ce regex doit fonctionner avec JJ/MM/AAAA 00:00:00, l'heure étant en option.
-      RegExp expTag = new RegExp(r"(^(([0-2]\d|[3][0-1])\/([0]\d|[1][0-2])\/[2][0]\d{2})$|^(([0-2]\d|[3][0-1])\/([0]\d|[1][0-2])\/[2][0]\d{2}\s([0-1]\d|[2][0-3])\:[0-5]\d\:[0-5]\d)$)");
+      RegExp expTag = RegExp(r"(^(([0-2]\d|[3][0-1])\/([0]\d|[1][0-2])\/[2][0]\d{2})$|^(([0-2]\d|[3][0-1])\/([0]\d|[1][0-2])\/[2][0]\d{2}\s([0-1]\d|[2][0-3])\:[0-5]\d\:[0-5]\d)$)");
       Match matches = expTag.firstMatch(c.value.trim());
       if (matches == null) {
         errors['Le format de date doit respecter JJ/MM/AAAA.'] = true;
@@ -112,6 +131,27 @@ class TodoDetailComponent implements OnActivate, OnDestroy {
     }
     else dayStr = "";
     return errors;
+  }
+
+  void doneOnOff(bool checked) {
+    // print("doneOnOff... " + todoItem.id + " -> " + checked.toString());
+    var now = DateTime.now();
+    todoItem.dayhour = dformat.format(now);
+    todoChanged = true;
+  }
+
+  void quickOnOff(bool checked) {
+    // print("doneOnOff... " + todoItem.id + " -> " + checked.toString());
+    var now = DateTime.now();
+    todoItem.dayhour = dformat.format(now);
+    todoChanged = true;
+  }
+
+  void cryptoOnOff(bool checked) {
+    // print("doneOnOff... " + todoItem.id + " -> " + checked.toString());
+    var now = DateTime.now();
+    todoItem.dayhour = dformat.format(now);
+    todoChanged = true;
   }
 
   void goBack() => _location.back();
@@ -142,8 +182,8 @@ class TodoDetailComponent implements OnActivate, OnDestroy {
     todoChanged = true;
     todoItem.description = Converter.noLineBreak(todoItem.description);
     // rechercher s'il y a un mot à encrypter
-    String s = Cryptographie.findStringToEncrypt(todoItem.description);
-    print("mot à encrypter: "+s+".");
+    // String s = Cryptography.findStringToEncrypt(todoItem.description);
+    // print("mot à encrypter: "+s+".");
   }
 
   void onEndChanged() {

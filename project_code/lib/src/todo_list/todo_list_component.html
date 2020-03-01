@@ -16,7 +16,7 @@
           <div class="col{{todoItem.color}}">&nbsp;</div>
         </span>
 
-        <material-checkbox #done materialTooltip="Marquer comme fait!" (change)="doneOnOff(todoItem,done.checked)" [(checked)]="todoItem.done">
+        <material-checkbox #done (change)="doneOnOff(todoItem,done.checked)" [(checked)]="todoItem.done">
         </material-checkbox>
 
         <span [class.done]="done.checked" class="thetitle">{{todoItem.title}}

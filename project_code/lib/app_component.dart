@@ -74,6 +74,7 @@ class AppComponent implements OnInit {
       print("event log ... "+e.type);
       if (e.type == "login") {
         connected = true;
+        isOnline = true;
         synchroServer();
       }
       if (e.type == "logoff") connected = false;
@@ -110,7 +111,7 @@ class AppComponent implements OnInit {
 
 
 
-  Future<Null> ngOnInit() async {
+  Future<void> ngOnInit() async {
     print("ngOnInit()...");
     DateTime dloc;
     DateTime dtemp;
@@ -161,28 +162,32 @@ class AppComponent implements OnInit {
       }
     }
 
-    await checkConnected();
+    connected = await checkConnected();
 
     if (connected) {
-      isOnline = true;
       synchroServer();
     }
   }
 
-  Future<Null> checkConnected() async {
+  Future<bool> checkConnected() async {
     String t = localDataService.getToken(user);
-
+    bool retBool = false;
     try {
-      if (t != null) connected = await serverDataService.checkToken(user, t);
-      else connected = false;
+      if (t != null) {
+        retBool = await serverDataService.checkToken(user, t);
+        // s'il n'y a pas d'exception passé cette ligne c'est qu'il y a du réseau
+        isOnline = true;
+      }
+      else retBool = false;
+      return retBool;
     } catch (e) {
       print("error calling network");
-      connected = false;
+      isOnline = false;
+      return false;
     }
-    print("connected..." + connected.toString());
   }
 
-  Future<Null> checkStorage() async {
+  Future<void> checkStorage() async {
     DateTime dtEvent = DateTime.now();
     Duration difference = dtEvent.difference(dtLocaleStored);
     if (difference.inSeconds > 30) {
@@ -196,13 +201,12 @@ class AppComponent implements OnInit {
     // vérifier maintenant la synchro server, si onLine et dtSynchronised ancienne alors faire synchroServer.
     if (isOnline) {
       if (!connected) {
-        String t = localDataService.getToken(user);
-        if (t != null) connected = await serverDataService.checkToken(user, t);
+        connected = await checkConnected();
       }
       difference = dtEvent.difference(dtSynchronised);
       print("check synchro... difference="+difference.inSeconds.toString());
       if ((difference.inSeconds > 240) && connected) {
-        synchroServer();
+        await synchroServer();
       }
     }
   }
@@ -215,7 +219,7 @@ class AppComponent implements OnInit {
     tempTodo2 = null;
   }
 
-  Future<Null> synchroServer() async {
+  Future<void> synchroServer() async {
     if (dtSynchronised != null) print("onsynchro()... "+dformat.format(dtSynchronised)+".");
     else print("onsynchro()...");
 
@@ -247,6 +251,10 @@ class AppComponent implements OnInit {
               todoItem.color = serverTodoItem.color;
               todoItem.end = serverTodoItem.end;
               todoItem.priority = serverTodoItem.priority;
+              if (serverTodoItem.quick != null) todoItem.quick = serverTodoItem.quick;
+              else todoItem.quick = false;
+              if (serverTodoItem.crypto != null) todoItem.crypto = serverTodoItem.crypto;
+              else todoItem.crypto = false;
             }
             else {
               // là par sécurité on va garder les info qui étaient présentes avant la synchro en commençant par un warning sur le title
