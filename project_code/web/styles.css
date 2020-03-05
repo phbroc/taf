@@ -98,17 +98,6 @@ li:hover {
   background-color: #EEEEEE;
 }
 
-li material-checkbox {
-  vertical-align: middle;
-  position: absolute;
-}
-
-li material-fab {
-  position: relative;
-  /*float: right;*/
-  vertical-align: middle;
-}
-
 /* weeklist */
 
 .detailPopup {
@@ -231,7 +220,15 @@ span.inBackColorStripeP>div {
   display: block;
 }
 
+.crKeyInfo {
+  font-size: 0.8em;
+  color: grey;
+}
 
+.numPage {
+  position: relative;
+  top: -0.4em;
+}
 
 footer {
   margin-top: 2em;

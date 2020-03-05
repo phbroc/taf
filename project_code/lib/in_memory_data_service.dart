@@ -17,7 +17,7 @@ class InMemoryDataService {
   }
 
   static void insert(Todo todoItem) {
-    print("insert : " + todoItem.id);
+    //print("insert : " + todoItem.id);
     _todoDb.insert(0,todoItem);
 
     if (todoItem.tag != "")
@@ -60,30 +60,38 @@ class InMemoryDataService {
     return _todoDb;
   }
 
+  static int todoTagListLength(String t) {
+    return giveAllByTag(t,0).length;
+  }
+
   static List<Todo> giveAllSince(DateTime d) {
     List<Todo> filteredTodo = [];
-    print("giveAllSince " + d.toString() + "...");
+    //print("giveAllSince " + d.toString() + "...");
     _todoDb.forEach((todoItem) {
       if (d.isBefore(DateTime.parse(todoItem.dayhour))) filteredTodo.add(todoItem);
     });
-    print("... length : " + filteredTodo.length.toString());
+    //print("... length : " + filteredTodo.length.toString());
     return filteredTodo;
   }
 
-  static List<Todo> giveAllByTag(String t) {
+  static List<Todo> giveAllByTag(String t, int page) {
     List<Todo> filteredTodo = [];
-    print("giveAllBy " + t + "...");
+    //print("giveAllBy " + t + "...");
     _todoDb.forEach((todoItem) {
       if (todoItem.tag == t) filteredTodo.add(todoItem);
     });
-    print("... length : " + filteredTodo.length.toString());
-    return filteredTodo;
+    //print("... length : " + filteredTodo.length.toString());
+    if (page>0) {
+      if (filteredTodo.length >= page*10) return filteredTodo.sublist((page-1)*10,page*10);
+      else if (filteredTodo.length >= (page-1)*10) return filteredTodo.sublist((page-1)*10);
+    }
+    else return filteredTodo;
   }
 
   static void clearById(String id) {
-    print("DB length : " + _todoDb.length.toString() + ", clearById : " + id);
+    //print("DB length : " + _todoDb.length.toString() + ", clearById : " + id);
     _todoDb.removeWhere((todoItem) => todoItem.id == id);
-    print("new length : " + _todoDb.length.toString());
+    //print("new length : " + _todoDb.length.toString());
 
     // todo: eventuellement supprimer l'ancien tag si c'était la suppression
   }
@@ -130,7 +138,7 @@ class InMemoryDataService {
   }
 
   static List<Todo> giveWeekTodo() {
-    print("giveWeekTodo...");
+    //print("giveWeekTodo...");
     List<Todo> weekTodo = [];
     DateTime now = new DateTime.now();
     int today = now.weekday;

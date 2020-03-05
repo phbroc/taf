@@ -39,6 +39,7 @@ class ParamsComponent implements OnInit, OnDestroy {
   String user;
   bool connected = false;
   String cryptoKey = '';
+  bool crKeyVisible = false;
 
   Control ckeyControl = Control('');
 
@@ -101,14 +102,18 @@ class ParamsComponent implements OnInit, OnDestroy {
     // print('validateCkey: ${c.value}');
     if (c.value != null) {
       if (c.value.trim().length > 0) {
-        RegExp expTag = RegExp(r"^[a-zA-Z0-9]+$");
+        RegExp expTag = RegExp(r"^[0-9A-Z\[\]_]+$");
         Match matches = expTag.firstMatch(c.value.trim());
         if (matches == null) {
-          errors['Le format de la clé est incorrect. Caractères autorisés : alphanumériques'] = true;
+          errors['Format incorrect. Caractères autorisés 0-9 A-Z [ ] _.'] = true;
         }
       }
     }
     return errors;
+  }
+
+  void crKeyVisibility() {
+    crKeyVisible = !crKeyVisible;
   }
 
 }

@@ -1,0 +1,10 @@
+li material-checkbox {
+    vertical-align: middle;
+    position: absolute;
+}
+
+li material-fab {
+    position: relative;
+    /*float: right;*/
+    vertical-align: middle;
+}

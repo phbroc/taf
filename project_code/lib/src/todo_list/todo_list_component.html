@@ -31,3 +31,15 @@
   </ul>
 </div>
 
+<p>
+<material-fab mini (trigger)="previousPage()" [class.hide]="!lessItems" [class.show]="lessItems">
+  <material-icon icon="chevron_left"></material-icon>
+</material-fab>
+
+<span class="numPage">p.{{page}}</span>
+
+<material-fab mini (trigger)="nextPage()" [class.hide]="!moreItems" [class.show]="moreItems">
+  <material-icon icon="chevron_right"></material-icon>
+</material-fab>
+</p>
+

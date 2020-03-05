@@ -57,9 +57,13 @@ class TodoListComponent implements OnActivate, AfterChanges, AfterViewChecked {
   final Router _router;
   final Location _location;
 
-  String _totoItemUrl(String id) => RoutePaths.detail.toUrl(parameters: {idParam: '$id'});
+  String _todoItemUrl(String i) => RoutePaths.detail.toUrl(parameters: {idParam: '$i'});
+  String _listtagUrl(String t, String p) => RoutePaths.listtag.toUrl(parameters: {tagParam: '$t', pageParam: '$p'});
 
   String tag;
+  String page = "0";
+  bool moreItems = false;
+  bool lessItems = false;
   String user;
 
   final nformat = NumberFormat("000000");
@@ -85,9 +89,11 @@ class TodoListComponent implements OnActivate, AfterChanges, AfterViewChecked {
     //todoItems = await todoListService.getTodoItems();
     //tag = _routeParams.get('tag');
     tag = getTag(current.parameters);
+    // pour la pagination
+    page = getPage(current.parameters);
     refreshList();
     lifeCycle = "Activate";
-    print("List onActivate... " + todoItems.length.toString());
+    //print("List onActivate... " + todoItems.length.toString());
   }
 
 
@@ -106,9 +112,25 @@ class TodoListComponent implements OnActivate, AfterChanges, AfterViewChecked {
   }
 
   void refreshList() {
-    if (tag == "all") todoItems = InMemoryDataService.giveAll();
-    else if ((tag != null) && (tag != "") && (tag != "all")) todoItems = InMemoryDataService.giveAllByTag(tag);
-    else todoItems = InMemoryDataService.giveAll();
+    if (tag == "all") {
+      todoItems = InMemoryDataService.giveAll();
+      moreItems = false;
+      lessItems = false;
+    }
+    else if ((tag != null) && (tag != "") && (tag != "all")) {
+      todoItems = InMemoryDataService.giveAllByTag(tag,int.parse(page));
+      // vérifier le nombre de pages
+      //
+      if (InMemoryDataService.todoTagListLength(tag) > (10*int.parse(page))) moreItems = true;
+      else moreItems = false;
+      if (page=="1") lessItems = false;
+      else lessItems = true;
+    }
+    else {
+      todoItems = InMemoryDataService.giveAll();
+      moreItems = false;
+      lessItems = false;
+    }
   }
 
   void remove(Todo todoItem) {
@@ -126,7 +148,9 @@ class TodoListComponent implements OnActivate, AfterChanges, AfterViewChecked {
 
 
 
-  Future<NavigationResult> gotoDetail(Todo todoItem) => _router.navigate(_totoItemUrl(todoItem.id));
+  Future<NavigationResult> gotoDetail(Todo todoItem) => _router.navigate(_todoItemUrl(todoItem.id));
+  Future<NavigationResult> nextPage() => _router.navigate(_listtagUrl(tag,(1+int.parse(page)).toString()));
+  Future<NavigationResult> previousPage() => _router.navigate(_listtagUrl(tag,(int.parse(page)-1).toString()));
 
   void doneOnOff(Todo todoItem, bool checked) {
     if (lifeCycle == "ViewChecked2") {

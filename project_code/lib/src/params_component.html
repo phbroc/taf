@@ -3,7 +3,9 @@
 <h3>Connection serveur</h3>
 <div>
     <material-input label="Mot de passe..."
-                    autoFocus floatingLabel style="width:80%"
+                    autoFocus
+                    floatingLabel
+                    style="width:80%"
                     [(ngModel)]="pass"
                     (keyup.enter)="connect()"
                     type="password"
@@ -35,11 +37,35 @@
 <div>
     <material-input label="Clé de cryptographie..."
                     [ngFormControl]="ckeyControl"
-                    autoFocus floatingLabel style="width:80%"
+                    autoFocus
+                    floatingLabel
                     [(ngModel)]="cryptoKey"
-                    type="password">
+                    [maxCount]="16"
+                    type="password"
+                    style="width:40%"
+                    >
     </material-input>
-    <p><span [hidden]='ckeyControl.valid' class='error'>
+
+    <material-fab mini raised
+                  (trigger)="crKeyVisibility()"
+                  [class.hide]="crKeyVisible"
+                  [class.show]="!crKeyVisible"
+                  >
+        <material-icon icon="visibility"></material-icon>
+    </material-fab>
+
+    <material-fab mini raised
+                  (trigger)="crKeyVisibility()"
+                  [class.hide]="!crKeyVisible"
+                  [class.show]="crKeyVisible"
+                  >
+        <material-icon icon="visibility_off"></material-icon>
+    </material-fab>
+    <!-- info: did not manage to toogle text password type in material-input, so I use this tiny span text to show password when wanted -->
+    <span [hidden]='!crKeyVisible' class="crKeyInfo">&nbsp;{{cryptoKey}}</span>
+
+    <p>
+        <span [hidden]='ckeyControl.valid' class='error'>
         <span *ngFor='let error of ckeyControl.errors?.keys'>{{error}} </span>
     </span></p>
 </div>

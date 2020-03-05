@@ -2,12 +2,13 @@ import 'package:angular_router/angular_router.dart';
 
 const tagParam = 'tag';
 const idParam = 'id';
+const pageParam = 'page';
 
 class RoutePaths {
   static final accueil = RoutePath(path: 'accueil');
   static final params = RoutePath(path: 'params');
   static final list = RoutePath(path: 'list');
-  static final listtag = RoutePath(path: '${list.path}/:$tagParam');
+  static final listtag = RoutePath(path: '${list.path}/:$tagParam/:$pageParam');
   static final detail = RoutePath(path: 'detail/:$idParam');
   static final tag = RoutePath(path: 'tag');
   static final add = RoutePath(path: 'add');
@@ -21,4 +22,9 @@ String getId(Map<String, String> parameters) {
 String getTag(Map<String, String> parameters) {
   final tag = parameters[tagParam];
   return tag;
+}
+
+String getPage(Map<String, String> parameters) {
+  final page = parameters[pageParam];
+  return page;
 }
