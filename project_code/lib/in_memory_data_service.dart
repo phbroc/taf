@@ -7,6 +7,7 @@ class InMemoryDataService {
   static List<Todo> _todoDb;
   static List<Tag> _tagLi;
   static String _cryptoKey;
+  static Map<String,String> _traduction;
 
   InMemoryDataService();
 
@@ -23,7 +24,7 @@ class InMemoryDataService {
     if (todoItem.tag != "")
     {
       Tag inlisttag = _tagLi.firstWhere((tagl) => tagl.tagName == todoItem.tag, orElse: () => null);
-      Tag newtag = new Tag(todoItem.tag, todoItem.color);
+      Tag newtag = Tag(todoItem.tag, todoItem.color);
       if (inlisttag == null) _tagLi.add(newtag);
     }
   }
@@ -34,7 +35,7 @@ class InMemoryDataService {
       if (targetTodoItem.tag != todoItemChanges.tag)
       {
         Tag inlisttag = _tagLi.firstWhere((tagl) => tagl.tagName == todoItemChanges.tag, orElse: () => null);
-        Tag newtag = new Tag(todoItemChanges.tag, todoItemChanges.color);
+        Tag newtag = Tag(todoItemChanges.tag, todoItemChanges.color);
         if (inlisttag == null) _tagLi.add(newtag);
 
         // todo: eventuellement supprimer l'ancien tag si c'était le dernier avant modification
@@ -104,7 +105,7 @@ class InMemoryDataService {
 
     _todoDb.forEach((todoItem) {
       inlisttag = _tagLi.firstWhere((tagl) => tagl.tagName == todoItem.tag, orElse: () => null);
-      newtag = new Tag(todoItem.tag, todoItem.color);
+      newtag = Tag(todoItem.tag, todoItem.color);
       if (inlisttag == null) _tagLi.add(newtag);
     });
   }
@@ -140,12 +141,12 @@ class InMemoryDataService {
   static List<Todo> giveWeekTodo() {
     //print("giveWeekTodo...");
     List<Todo> weekTodo = [];
-    DateTime now = new DateTime.now();
+    DateTime now = DateTime.now();
     int today = now.weekday;
-    DateTime nextMonday = now.add(new Duration(days: 8-today));
-    DateTime lastSunday = now.subtract(new Duration(days: today-0));
-    DateTime weekStarts = new DateTime(lastSunday.year, lastSunday.month, lastSunday.day, 23, 59, 59);
-    DateTime weekEnds = new DateTime(nextMonday.year, nextMonday.month, nextMonday.day, 0, 0, 0);
+    DateTime nextMonday = now.add(Duration(days: 8-today));
+    DateTime lastSunday = now.subtract(Duration(days: today-0));
+    DateTime weekStarts = DateTime(lastSunday.year, lastSunday.month, lastSunday.day, 23, 59, 59);
+    DateTime weekEnds = DateTime(nextMonday.year, nextMonday.month, nextMonday.day, 0, 0, 0);
     // print("starts:"+weekStarts.toString()+" ends:"+weekEnds.toString());
 
     _todoDb.forEach((todoItem) {
@@ -170,5 +171,13 @@ class InMemoryDataService {
 
   static String getCryptoKey() {
     return _cryptoKey;
+  }
+
+  static void setTraduction(Map<String, String> t) {
+    _traduction = t;
+  }
+
+  static Map<String, String> getTraduction() {
+    return _traduction;
   }
 }

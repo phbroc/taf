@@ -19,6 +19,7 @@ class ServerDataService {
   static String _loginUrl;
   static String _logoffUrl;
   static String _checkTokenUrl;
+  static String _traductionUrl;
   static final dformat = DateFormat('yyyy-MM-dd HH:mm:ss');
 
   //pas d'instantiation d'objet pour class injectable. ???
@@ -30,6 +31,7 @@ class ServerDataService {
     _loginUrl = _serverUrl + 'api/server/login.php';
     _logoffUrl = _serverUrl + 'api/server/logoff.php';
     _checkTokenUrl = _serverUrl + 'api/server/checkToken.php';
+    _traductionUrl = _serverUrl + 'language/traduction.json';
   }
 
   Future<String> connect(String u, String p) async {
@@ -138,6 +140,19 @@ class ServerDataService {
       throw _handleError(e);
     }
 
+  }
+
+  Future <Map<String, String>> getTraduction() async {
+    var traduction = Map<String, String>();
+    try {
+      print("traductions... ");
+      final response = await _http.get(_traductionUrl, headers: _headers);
+      traduction = _extractData(response);
+      return traduction;
+    }
+    catch (e) {
+      throw _handleError(e);
+    }
   }
 
   dynamic _extractData(Response resp) => jsonDecode(resp.body);

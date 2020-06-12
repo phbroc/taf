@@ -77,13 +77,13 @@ class WeekListComponent implements OnInit {
   String giveWeekDay(DateTime d) {
     String retStr;
     switch(d.weekday) {
-      case 1: retStr = "lundi"; break;
-      case 2: retStr = "mardi"; break;
-      case 3: retStr = "mercredi"; break;
-      case 4: retStr = "jeudi"; break;
-      case 5: retStr = "vendredi"; break;
-      case 6: retStr = "samedi"; break;
-      case 7: retStr = "dimanche"; break;
+      case 1: retStr = "monday"; break;
+      case 2: retStr = "tuesday"; break;
+      case 3: retStr = "wednesday"; break;
+      case 4: retStr = "thursday"; break;
+      case 5: retStr = "friday"; break;
+      case 6: retStr = "saturday"; break;
+      case 7: retStr = "sunday"; break;
       default: retStr = "error"; break;
     }
     return retStr;

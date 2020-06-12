@@ -1,12 +1,12 @@
 <!-- Components info: https://webdev.dartlang.org/components -->
-<h2 *ngIf="tag==null || tag=='all'">Tout ce qu'il y a.</h2>
-<h2 *ngIf="tag!=null && tag!='all'">Tout ce qui concerne {{tag}}</h2>
+<h2 *ngIf="tag==null || tag=='all'">Everything to do</h2>
+<h2 *ngIf="tag!=null && tag!='all'">Everything about {{tag}}</h2>
 
 
 <todo-add></todo-add>
 
 <p *ngIf="todoItems.length == 0">
-  La liste est vide. Commencer par ajouter des trucs à faire.
+  Empty todo list.
 </p>
 
 <div *ngIf="todoItems.length > 0">
