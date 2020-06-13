@@ -71,13 +71,13 @@ if(!empty($_POST['hostdb']) && !empty($_POST['namedb']) && !empty($_POST['userdb
     </head>
     <body>
     	<h1>INIT</h1>
-    	<p>Mise en place de la table, ATTENTION faire une fois car ça efface les données.</p>
+    	<p>Table creation, WARNING this script has to be executed once! There is DROP TABLE.</p>
       <form method="post">
-        <p><b>serveur</b>: <input type="text" size="20" name="hostdb"></p>
+        <p><b>server</b>: <input type="text" size="20" name="hostdb"></p>
         <p><b>base</b>: <input type="text" size="20" name="namedb"></p>
-        <p><b>utilisateur</b>: <input type="text" size="20" name="userdb"></p>
-        <p><b>passe</b>: <input type="password" size="20" name="passdb"></p>
-        <p><input type="submit"></p>
+        <p><b>DB user</b>: <input type="text" size="20" name="userdb"></p>
+        <p><b>DB password</b>: <input type="password" size="20" name="passdb"></p>
+        <p><input type="submit" value="Create"></p>
       </form>
       <hr/>
 		

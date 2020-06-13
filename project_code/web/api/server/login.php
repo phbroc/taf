@@ -1,13 +1,15 @@
 <?php
 // uniquement pendant les test :
-// header('Access-Control-Allow-Origin: http://localhost:53322');
-header('Access-Control-Allow-Headers: Content-Type');
+// header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 header('Access-Control-Allow-Methods: GET, POST');
 
 
 // Connection data (server_address, database, name, poassword)
 require_once ("cnct.php");
+
+$uniqUserPass = "somepassword";
+
 $conn = new PDO("mysql:host=".HOST."; dbname=".NAME, USER, PASS);
 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 //$conn->exec("SET CHARACTER SET utf8");      // Sets encoding UTF-8
@@ -23,7 +25,7 @@ function generateRandomString($length = 10) {
     return $randomString;
 }
 
-//
+
  if ($_SERVER['REQUEST_METHOD'] === 'POST') 
  {
  	$input = file_get_contents('php://input');
@@ -34,7 +36,7 @@ function generateRandomString($length = 10) {
 	$user = $jsonObj->user;
 	$pass = $jsonObj->pass;
 	
-	if ($pass == "somepassword") {
+	if ($pass == $uniqUserPass) {
  	
 		$result = "{";
 		$dayhour_sc = date('Y-m-d H:i:s');
@@ -111,7 +113,7 @@ function generateRandomString($length = 10) {
 		
 
 //
-//
+
 	}
 	else {
 		echo '{"token":null}';
@@ -123,7 +125,7 @@ function generateRandomString($length = 10) {
  {
  	echo '{"Caught exception":"method execpetion"}';
  }
-//
+
  //
  
  $conn->commit();
