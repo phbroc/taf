@@ -12,7 +12,7 @@ pub global run webdev build --output=web:build
 You will get the build folder with the functionable code. 
 
 ## Deploy
-The build folder is supposed to be hosted on a LAMP server. Put all the builded project on the server. Before starting the app, next step is installing the database.
+The build folder is supposed to be hosted on a LAMP server. Upload the content of build folder on your server. Before starting the app, next step is installing the database.
 
 ### Server side environment
 Before going on, there is some work to setup the server side environment. The todo list storage is located twice, first with local storage (on a mobile device) and second inside a server database. This remote storage make the list available everywhere. The server side source code is with PHP and MySQL language. To make it work for your need, you have to prepare the database and to customize some files. A tiny MariaDB NoSQL database is sufficient.
@@ -25,8 +25,27 @@ $uniqUserPass = "somepassword";
 ```
 Save your change for this file.
 
+### One more file to edit
+The index.html file is settled for development environment. In production, some lines in the head as to be changed. Delete lines where there is the script : 
+```
+    <script>
+        // WARNING: DO NOT set the <base href> like this in production!
+        // Details: https://webdev.dartlang.org/angular/guide/router
+        (function () {
+            // App being served out of web folder (like WebStorm does)?
+            var match = document.location.pathname.match(/^\/[-\w]+\/web\//);
+            var href = match ? match[0] : '/';
+            document.write('<base href="' + href + '" />');
+        }());
+    </script>
+```
+Instead add this line :
+```
+<base href="/">
+```
+
 ### Test !
-That's all. Your are now ready to test Taf! Go to `http://...yourhostingurl.ext` to launch the web app. At the beginning there are no todo items. Click on the settings button, and in the next page enter your password to log in. Go back to the home page and add your first thing to do. You don't have to save your modifications, this is done on the fly, in local storage and in the server database when you're online.
+That's all. Your are now ready to test Taf! Go to `http://...yourhostingurl.ext` to launch the web app. At the beginning there is no todo item. Click on the settings button, and in the next page enter your password to log in (the password you choosed in login.php file). Go back to the home page and add your first thing to do. You don't have to save your modifications, this is done on the fly, in local storage and in the server database when you're online.
 
 ![Home](capture/home.jpg)
 
