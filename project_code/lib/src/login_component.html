@@ -1,0 +1,119 @@
+<h2>{{title}} {{user}}</h2>
+
+<div class="newLine">
+    <form>
+        <ul>
+            <li>
+                <input [(ngModel)]="langChoiceFR" name="lang" type="radio" id="langFR" class="choice"
+                       [value]="0" (click)="changeLang(0)">
+                <label for="langFR" class="choice">FR</label>
+            </li>
+            <li>
+                <input [(ngModel)]="langChoiceEN" name="lang" type="radio" id="langEN" class="choice"
+                       [value]="1" (click)="changeLang(1)">
+                <label for="langEN" class="choice">EN</label>
+            </li>
+        </ul>
+    </form>
+</div>
+
+<div>
+    <div class="newLine">
+        <form>
+            <fieldset>
+                <legend>{{identificationStr}}</legend>
+                <div *ngIf="connected">
+                    <button (click)="disconnect()">
+                        {{disconnectionStr}}
+                    </button>
+                    <div class="newLine">
+                        <a (click)="newPassWanted=!newPassWanted" class="actionLink">{{passwordChangeStr}}</a>
+                    </div>
+                </div>
+                <div *ngIf="!connected">
+                    <label for="userInp" class="labelTop">{{userStr}}</label>
+                    <input [(ngModel)]="user" name="user" type="text" id="userInp" required>
+                    <label for="passwordInp" class="labelTop">{{passwordStr}}</label>
+                    <input [(ngModel)]="password" name="password" type="password" id="passwordInp" required>
+                    <div class="newLine">
+                        <button *ngIf="!connected" (click)="connect()">
+                            {{connectionStr}}
+                        </button>
+                    </div>
+                </div>
+                <div *ngIf="newPassWanted">
+                    <label for="passwordRecall" class="labelTop">{{passwordStr}}</label>
+                    <input [(ngModel)]="password" name="password" type="password" id="passwordRecall" required>
+                    <label for="newPasswordInp" class="labelTop">{{newPasswordStr}}</label>
+                    <input [(ngModel)]="newPassword" name="newpassword" type="password" id="newPasswordInp" required>
+                    <label for="newPassRepInp" class="labelTop">{{newPassRepeatStr}}</label>
+                    <input [(ngModel)]="newPassRepeat" name="newpassrepeat" type="password" id="newPassRepInp" required>
+                    <div class="newLine">
+                        <button *ngIf="connected" (click)="passwordChange()">
+                            {{changeStr}}
+                        </button>
+                    </div>
+                </div>
+                <p id="form1message" [hidden]="!errorForm1">{{form1Message}}</p>
+            </fieldset>
+        </form>
+
+    </div>
+
+    <div *ngIf="connected" class="newLine">
+        <form>
+            <fieldset>
+                <legend *ngIf="cryptoOn">{{cryptographyStr}} {{enabledStr}}</legend>
+                <legend *ngIf="!cryptoOn">{{cryptographyStr}}</legend>
+
+                <ul>
+                    <li>
+                        <input [(ngModel)]="cryptoChoice16" name="cryptoLevel" type="radio" id="crypto16" class="choice"
+                               [value]="16" (click)="changeCryptoLevel(16)">
+                        <label for="crypto16" class="choice">16</label>
+                    </li>
+                    <li>
+                        <input [(ngModel)]="cryptoChoice24" name="cryptoLevel" type="radio" id="crypto24" class="choice"
+                               [value]="24" (click)="changeCryptoLevel(24)">
+                        <label for="crypto24" class="choice">24</label>
+                    </li>
+                    <li>
+                        <input [(ngModel)]="cryptoChoice32" name="cryptoLevel" type="radio" id="crypto32" class="choice"
+                               [value]="32" (click)="changeCryptoLevel(32)">
+                        <label for="crypto32" class="choice">32</label>
+                    </li>
+                </ul>
+
+
+
+                <label for="personalKeyInp" class="labelTop">{{personalKeyStr}} {{personalKeyLength}}/{{preferedKeyLength}}</label>
+                <input [(ngModel)]="personalKey" #personalkey name="personalkey" [type]="personalKeyInpMode"
+                       (input)="keyControl(personalkey.value, 1)" id="personalKeyInp" class="mediumInp">
+                <button [hidden]="personalKeyInpMode=='text'" (click)="lookPersonalKey()">{{lookStr}}</button>
+                <button [hidden]="personalKeyInpMode=='password'" (click)="maskPersonalKey()">{{maskStr}}</button>
+                <div class="newLine">
+                    <button [hidden]="cryptoOn" [disabled]="errorForm2" (click)="putCryptoOn()">{{keySetStr}}</button>
+                    <button [hidden]="!cryptoOn || newKeyWanted" (click)="putCryptoOff()">{{keyUnsetStr}}</button>
+                </div>
+                <div [hidden]="!cryptoOn" class="newLine">
+                    <a (click)="newKeyWanted=!newKeyWanted" class="actionLink">{{keyChangeStr}}</a>
+                </div>
+                <div *ngIf="newKeyWanted && cryptoOn">
+                    <div class="newLine">
+                        <label for="keyUpdateInp" class="labelTop">{{keyUpdateStr}} {{keyUpdateLength}}/{{preferedKeyLength}}</label>
+                        <input [(ngModel)]="keyUpdate" #keyupdate name="keyupdate" [type]="keyUpdateInpMode"
+                               (input)="keyControl(keyupdate.value, 2)" id="keyUpdateInp" class="mediumInp">
+                        <button [hidden]="keyUpdateInpMode=='text'" (click)="lookKeyUpdate()">{{lookStr}}</button>
+                        <button [hidden]="keyUpdateInpMode=='password'" (click)="maskKeyUpdate()">{{maskStr}}</button>
+                        <div class="newLine">
+                            <button [disabled]="errorForm2" (click)="keyChange()">{{changeStr}}</button>
+                        </div>
+                    </div>
+                </div>
+                <p id="form2message" [hidden]="!errorForm2">{{form2Message}}</p>
+            </fieldset>
+        </form>
+    </div>
+
+
+</div>

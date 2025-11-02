@@ -1,0 +1,8 @@
+<div>
+    <p id="formAddMessage" [hidden]="!errorFormAdd">{{formAddMessage}}</p>
+    <label for="addTokInp" class="labelTop">{{newToknowStr}}</label>
+    <input #toknowTitle id="addTokInp"/>
+    <button (click)="add(toknowTitle)">
+        {{addStr}}
+    </button>
+</div>

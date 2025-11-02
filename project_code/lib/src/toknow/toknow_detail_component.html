@@ -1,0 +1,76 @@
+<div *ngIf="toknow != null" class="tkDetail">
+    <h2 class="hDetail bord{{toknow!.color}}">{{toknow!.title}}</h2>
+
+    <div>
+        <form>
+            <p id="form1message" [hidden]="!errorForm1">{{form1Message}}</p>
+            <label for="titleTokInp" class="labelTop">{{titleStr}}</label>
+            <input [(ngModel)]="toknow!.title" name="title" type="text" id="titleTokInp" class="largeInp" required>
+            <label for="tagTokInp" class="labelTop">{{tagStr}}</label>
+            <input [(ngModel)]="toknow!.tag" name="tag" type="text" id="tagTokInp" class="shortInp" required>
+            <label for="descTokText" class="labelTop">{{descriptionStr}}</label>
+            <textarea [(ngModel)]="toknow!.description" name="description" [disabled]="!cryptoOn && toknow!.crypto"
+                      id="descTokText" class="largeTex"></textarea>
+
+            <ul class="checkListLine">
+                <li>
+                    <input [(ngModel)]="toknow!.crypto" [disabled]="!cryptoOn || shared" name="crypto" type="checkbox" id="cryTokInp" class="check">
+                    <label for="cryTokInp" class="check">{{cryptoStr}}</label>
+                </li>
+                <li>
+                    <input [(ngModel)]="toknow!.quick" name="quick" type="checkbox" id="quiTokInp" class="check">
+                    <label for="quiTokInp" class="check">{{quickStr}}</label>
+                </li>
+                <li>
+                    <input [(ngModel)]="toknow!.done" name="done" type="checkbox" id="donTokInp" class="check">
+                    <label for="donTokInp" class="check">{{doneStr}}</label>
+                </li>
+                <li>
+                    <input [(ngModel)]="shared" [disabled]="toknowUser=='SHR' || toknow!.crypto" name="shared" type="checkbox" id="shrTokInp" class="check">
+                    <label for="shrTokInp" class="check">{{shareStr}}</label>
+                </li>
+            </ul>
+
+            <label for="endTokInp" class="labelTop">{{endStr}}</label>
+            <input [(ngModel)]="endDay" name="end" type="date" id="endTokInp" class="dateinput">
+            <select [(ngModel)]="endHour" name="endHour" id="endHouSel">
+                <option></option>
+                <option>06</option>
+                <option>07</option>
+                <option>08</option>
+                <option>09</option>
+                <option>10</option>
+                <option>11</option>
+                <option>12</option>
+                <option>13</option>
+                <option>14</option>
+                <option>15</option>
+                <option>16</option>
+                <option>17</option>
+                <option>18</option>
+                <option>19</option>
+                <option>20</option>
+                <option>21</option>
+                <option>22</option>
+                <option>23</option>
+            </select>
+            <select [(ngModel)]="endMinute" name="endMinute" id="endMinSel">
+                <option></option>
+                <option>00</option>
+                <option>15</option>
+                <option>30</option>
+                <option>45</option>
+            </select>
+        </form>
+    </div>
+    <div class="formValidation">
+        <button (click)="goBack()">{{backStr}}</button>
+        <button (click)="save()">{{saveStr}}</button>
+    </div>
+
+
+    <p class="tokInfo">
+        <p>id: {{toknow!.id}} {{toknow!.version}}, {{dateStr}}: {{promptDayhour}}</p>
+    </p>
+
+</div>

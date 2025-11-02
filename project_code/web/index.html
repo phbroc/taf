@@ -1,27 +1,27 @@
 <!DOCTYPE html>
+
 <html>
-  <head>
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#ffffff" />
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="scaffolded-by" content="https://github.com/dart-lang/sdk">
+    <title>taf2</title>
+    <link rel="stylesheet" href="styles.css">
     <script>
         // WARNING: DO NOT set the <base href> like this in production!
         // Details: https://webdev.dartlang.org/angular/guide/router
         (function () {
-            // App being served out of web folder (like WebStorm does)?
-            var match = document.location.pathname.match(/^\/[-\w]+\/web\//);
-            var href = match ? match[0] : '/';
-            document.write('<base href="' + href + '" />');
+            var m = document.location.pathname.match(/^(\/[-\w]+)+\/web($|\/)/);
+            document.write('<base href="' + (m ? m[0] : '/') + '" />');
         }());
     </script>
-    <title>taf</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script defer src="main.dart" type="application/dart"></script>
-    <script defer src="packages/browser/dart.js"></script>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="icon" type="image/png" href="favicon.png">
-  </head>
-  <body>
-    <my-app>Loading...</my-app>
-  </body>
+    <script defer src="main.dart.js"></script>
+</head>
+
+<body>
+    <div id="wrapper">
+        <my-app>Loading...</my-app>
+    </div>
+</body>
 </html>

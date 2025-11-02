@@ -1,0 +1,10 @@
+<h2>{{title}} {{tagSelected?.name}}</h2>
+<toknow-add [tag]="tagSelected"></toknow-add>
+<tag-list [tag]="tagSelected" [page]="page"></tag-list>
+<div>
+    <p>
+        <button [hidden]="page == '1'" (click)="prevPage()">{{prevPageStr}}</button>
+        <span>p.{{page}}</span>
+        <button [hidden]="page == maxPage" (click)="nextPage()">{{nextPageStr}}</button>
+    </p>
+</div>

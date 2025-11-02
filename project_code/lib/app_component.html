@@ -1,16 +1,16 @@
-<h1>{{title}}</h1>
+<h1>
+    <span *ngIf="user!=shareUser">{{user}},</span>
+    {{title}}
+</h1>
 <nav>
-    <a [routerLink]="RoutePaths.accueil.toUrl()" [routerLinkActive]="'active'">
-        <material-icon icon="home"></material-icon>
-    </a>
-    <a [routerLink]="RoutePaths.params.toUrl()" [routerLinkActive]="'active'">
-        <material-icon icon="settings_applications"></material-icon>
-    </a>
+    <a [routerLink]="RoutePaths.dashboard.toUrl()"
+       [routerLinkActive]="'active'">{{homeLinkStr}}</a>
+    <a [routerLink]="RoutePaths.login.toUrl()"
+       [routerLinkActive]="'active'">{{userLinkStr}}</a>
 </nav>
-<hr class="clear">
 <router-outlet [routes]="Routes.all"></router-outlet>
 
 <footer>
-    <hr>
-    <p>{{isOnline ? 'online' : 'offline'}} - {{connected ? 'identified' : 'not identified'}} - Synchronized on {{dtSynchronised | date:"dd/MM/yyyy HH:mm"}} </p>
+    <span *ngIf="isOnLine">{{onLineStr}}</span><span *ngIf="!isOnLine">{{offLineStr}}</span>,
+    {{synchronizedStr}} {{promptDayhourSync}}
 </footer>

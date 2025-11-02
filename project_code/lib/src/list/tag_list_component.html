@@ -1,0 +1,21 @@
+<ul class="tokl">
+    <ng-container *ngFor="let toknow of toknows" >
+        <li *ngIf="toknow.version != 'DD'" class="tokl bord{{toknow.color}}">
+            <input [(ngModel)]="toknow.done" type="checkbox" id="done{{toknow.id}}"
+                   #done class="check" (change)="doneOnOff(toknow, done.checked)">
+            <span [class.done]="done.checked!"
+                  [class.inThePast]="isInThePast(toknow.end)">
+                {{toknow.title}}
+            </span>
+            <span [hidden]="toknow.id.substring(0,3)!=shareUser">
+                {{sharedStr}}
+            </span>
+            <button [hidden]="done.checked!"
+                    (click)="goToknowDetail(toknow.id)">{{editStr}}</button>
+            <button [hidden]="!done.checked!"
+                    (click)="remove(toknow)">{{deleteStr}}</button>
+        </li>
+    </ng-container>
+</ul>
+<p *ngIf="toknows.isEmpty">{{nothingStr}}</p>
+<p *ngIf="noMoreToknows">...</p>

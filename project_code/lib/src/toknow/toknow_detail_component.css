@@ -1,0 +1,7 @@
+input {
+    display: block;
+}
+
+input.dateinput, input.check, label.check {
+    display: inline;
+}

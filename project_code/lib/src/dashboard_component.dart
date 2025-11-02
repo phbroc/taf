@@ -1,24 +1,38 @@
-import 'package:angular/angular.dart';
-import 'package:angular_router/angular_router.dart';
-import 'tag_list/tag_list_component.dart';
-import 'ordered_list/week_list_component.dart';
-import 'todo_list/todo_add_component.dart';
+import 'package:ngdart/angular.dart';
+import 'toknow/toknow_add_component.dart';
+import 'tag/tags_component.dart';
+import 'list/week_list_component.dart';
+import 'list/forgotten_list_component.dart';
+import 'toknow/toknow_search_component.dart';
+import '../app_config.dart';
+import 'commons.dart';
 
 @Component(
-  selector: 'dashboard',
-  styleUrls: ['dashboard_component.css'],
-  templateUrl: 'dashboard_component.html',
-  directives: [
-    coreDirectives,
-    routerDirectives,
-    TagListComponent,
-    WeekListComponent,
-    TodoAddComponent,
-  ],
+    selector: 'dashboard',
+    templateUrl: 'dashboard_component.html',
+    styleUrls: ['dashboard_component.css'],
+    directives: [
+      ToknowAddComponent,
+      TagsComponent,
+      WeekListComponent,
+      ToknowSearchComponent,
+      ForgottenListComponent,
+    ],
+    providers: [
+      ClassProvider(AppConfig),
+    ]
 )
 
-class DashboardComponent {
+class DashboardComponent implements OnInit {
+  final AppConfig config;
+  String title = '';
+  int langId = 0;
 
+  DashboardComponent(this.config);
 
-
+  @override
+  void ngOnInit() async {
+    langId = await Commons.getLang();
+    title = config.dashboardTitle[langId];
+  }
 }

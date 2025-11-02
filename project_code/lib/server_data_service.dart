@@ -1,164 +1,119 @@
-import 'package:angular/angular.dart';
-import 'src/todo_list/todo.dart';
 import 'dart:async';
 import 'package:http/http.dart';
 import 'dart:convert';
-import 'package:intl/intl.dart';
-import 'src/app_config.dart';
+import 'src/toknow/toknow.dart';
 
-@Injectable()
+
 class ServerDataService {
-  // on initialise la propriété là, à la place de le faire dans le constructeur précédemment
   static final Client _http = Client();
+  static late String _apiUrl;
+  static late String _userUrl;
+  static late String _toknowUrl;
 
-  // attention à l'encodage !
-  static final _headers = { 'Content-Type': 'application/json; charset=utf-8'};
-
-  static String _serverUrl;
-  static String _synchroUrl;
-  static String _loginUrl;
-  static String _logoffUrl;
-  static String _checkTokenUrl;
-  static String _traductionUrl;
-  static final dformat = DateFormat('yyyy-MM-dd HH:mm:ss');
-
-  //pas d'instantiation d'objet pour class injectable. ???
-  //ServerDataService(this._http); en fait ça fonctionne quand même!
-
-  ServerDataService(AppConfig config) {
-    _serverUrl = config.apiEndpoint;
-    _synchroUrl = _serverUrl + 'api/server/synchro.php';
-    _loginUrl = _serverUrl + 'api/server/login.php';
-    _logoffUrl = _serverUrl + 'api/server/logoff.php';
-    _checkTokenUrl = _serverUrl + 'api/server/checkToken.php';
-    _traductionUrl = _serverUrl + 'language/traduction.json';
+  static void setup(String api, String user, String toknow) {
+    _apiUrl = api;
+    _userUrl = "$api/$user";
+    _toknowUrl = "$api/$toknow";
   }
 
-  Future<String> connect(String u, String p) async {
-
+  static Future<Response> connect(String user, String password) async {
+    // TODO encrypt password before sending.
     try {
-      print("login... " + u);
-      final response = await _http.post(_loginUrl, headers: _headers,
+      final responseC = await _http.post(
+          Uri.parse(_userUrl),
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': 'Bearer Null'
+          },
           body: jsonEncode({
-            'user': u,
-            'pass': p
+            'user': user,
+            'password': password
           }));
-      print("response body... " + response.body);
-      Map jsonData = _extractData(response);
-      print("server response found... " + jsonData['token'].toString());
-      return jsonData['token'];
+      return responseC;
     }
     catch (e) {
       throw _handleError(e);
     }
-
   }
 
-  Future<String> disconnect(String u, String t) async {
-
+  static Future<Response> changePassword(String user, String password, String newPassword, String token) async {
     try {
-      print("logoff... " + u);
-      final response = await _http.post(_logoffUrl, headers: _headers,
+      final responseC = await _http.post(
+          Uri.parse(_userUrl),
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': 'Bearer $token'
+          },
           body: jsonEncode({
-            'user': u,
-            'token': t
+            'user': user,
+            'password': password,
+            'newPassword': newPassword
           }));
-      print("response body... " + response.body);
-      Map jsonData = _extractData(response);
-      print("server response found... " + jsonData['token']);
-      return jsonData['token'];
+      return responseC;
     }
     catch (e) {
       throw _handleError(e);
     }
-
   }
 
-  Future<bool> checkToken(String u, String t) async {
-
+  static Future<Response> disconnect(String u, String t) async {
     try {
-      print("checkToken... " + t);
-      final response = await _http.post(_checkTokenUrl, headers: _headers,
+      final responseD = await _http.post(
+          Uri.parse(_userUrl),
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': 'Bearer $t'
+          },
           body: jsonEncode({
-            'user': u,
-            'token': t
+            'user': u
           }));
-      print("response body... " + response.body);
-      if (response.body.indexOf('connected') != -1) {
-        Map jsonData = _extractData(response);
-        print("server response found... " + jsonData['connected'].toString());
-        return jsonData['connected'] == true;
-      }
-      else {
-        return false;
-      }
-    }
-    catch (e) {
-      throw _handleError(e);
-    }
-
-  }
-
-  Future<List<Todo>> synchroTodoList(List<Todo> l, DateTime dh, String u, String t) async {
-    List<Todo> retTodoItems = <Todo>[];
-    // j'ai un doute sur le fait de passer les data dans une chaine de caractères... j'enlève ce code.
-    /*
-    String jsonData = '';
-    var sb = StringBuffer();
-    // List todoPost = [];
-    sb.write('[');
-    l.forEach((todoItem) {
-      sb.write(todoItem.toJson().toString()+",");
-      // todoPost.add(todoItem.toJson());
-    });
-    if (l.length > 0) jsonData = sb.toString().substring(0, sb.toString().length-1);
-    else jsonData = '[';
-    jsonData += ']';
-    */
-    try {
-      print("post... " + l.length.toString()); //jsonEncode({'token':t,'user':u,'dayhour':dformat.format(dh),'data':l}));
-      final response = await _http.post(_synchroUrl, headers: _headers, body: jsonEncode({'token':t,'user':u,'dayhour':dformat.format(dh),'data':l}));
-      // print("response body... " + response.body);
-      List jsonList = _extractData(response);
-      print("server response found... " + jsonList.length.toString());
-
-      if (jsonList.length == 1) {
-        if (jsonList[0]['Exception'] != null) throw Exception(jsonList[0]['Exception']);
-        else {
-          retTodoItems.add(Todo.fromJson(jsonList[0]));
-        }
-      }
-      else if (jsonList.length > 1) {
-        for (var i = 0; i < jsonList.length; i++) {
-          retTodoItems.add(Todo.fromJson(jsonList[i]));
-        }
-      }
-
-      return retTodoItems;
-    } catch (e) {
-      print("Exception in synchroTodoList..."+e.toString());
-      throw _handleError(e);
-    }
-
-  }
-
-  Future <Map<String, String>> getTraduction() async {
-    var traduction = Map<String, String>();
-    try {
-      print("traductions... ");
-      final response = await _http.get(_traductionUrl, headers: _headers);
-      traduction = _extractData(response);
-      return traduction;
+      return responseD;
     }
     catch (e) {
       throw _handleError(e);
     }
   }
 
-  dynamic _extractData(Response resp) => jsonDecode(resp.body);
+  static Future<Response> checkToken(String t) async {
+    try {
+      final responseU = await _http.get(
+          Uri.parse(_userUrl),
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': 'Bearer $t'
+          });
+      return responseU;
+    }
+    catch (e) {
+      throw _handleError(e);
+    }
+  }
 
-  Exception _handleError(dynamic e) {
-    print('Server error; cause: $e'); // for demo purposes only
+  static Future<Response> synchroToknowList(List<Toknow> l, DateTime dh, String t) async {
+    try {
+      var tList = [];
+      for (Toknow t in l) {
+        tList.add(t.toJson());
+      }
+      final responseT = await _http.post(
+          Uri.parse(_toknowUrl),
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': 'Bearer $t'
+          },
+          body: jsonEncode({
+            'dayhour': dh.toIso8601String(),
+            'toknows': tList
+          }));
+      return responseT;
+    }
+    catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  static Exception _handleError(dynamic e) {
+    print(e); // for demo purposes only
     return Exception('Server error; cause: $e');
   }
 

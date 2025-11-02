@@ -1,242 +1,163 @@
-/* Copyright (c) 2017, philippe. All rights reserved. Use of this source code
-   is governed by a BSD-style license that can be found in the LICENSE file. */
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 1em;
+  font-family: sans-serif;
+}
 
-@import url(https://fonts.googleapis.com/css?family=Roboto);
-@import url(https://fonts.googleapis.com/css?family=Material+Icons);
-
-body {
-  max-width: 600px;
+#wrapper {
   margin: 0 auto;
-  padding: 5vw;
+  max-width: 50em;
 }
 
-* {
-  font-family: Roboto, Helvetica, Arial, sans-serif;
+fieldset {
+  width: 75%;
 }
 
-h1 {
+label {
   display:block;
-  float: left;
-  padding-right: 0.4em;
+  margin-top: 0.5em;
 }
 
-.clear {
-  clear:both;
+input {
+  margin-top: 0.1em;
 }
 
-
-
-/* importé du projet TOH */
-
-a {
-  cursor: pointer;
-  cursor: hand;
-}
 button {
-  font-family: Arial;
-  background-color: #eee;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
+  margin-left: 0.5em;
+}
+
+footer {
+  margin-top: 1em;
+  font-size: 0.7em;
+}
+
+.labelTop {
+  font-size: 0.7em;
+}
+
+.formValidation {
+  margin-top: 1em;
+}
+
+.inThePast { color: red; }
+.done { text-decoration: line-through; }
+
+#overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+
+#more {
+  z-index: 2;
+  background-color: white;
+  position: absolute;
+  top: inherit;
+  padding: 1em;
+  width: 80%;
+}
+
+.actionLink {
+  font-size: 0.8em;
+  color: blue;
+  text-decoration: underline;
   cursor: pointer;
-  cursor: hand;
-}
-button:hover {
-  background-color: #cfd8dc;
-}
-button:disabled {
-  background-color: #eee;
-  color: #aaa;
-  cursor: auto;
 }
 
-/* Navigation link styles */
-nav {
-  padding: 0.8em;
+.tokInfo {
+  font-size: 0.8em;
 }
 
-nav a {
-  padding: 5px 10px;
-  text-decoration: none;
-  margin-right: 10px;
-  margin-top: 10px;
-  display: inline-block;
-  background-color: #eee;
-  border-radius: 4px;
-}
-nav a:visited, a:link {
-  color: #607D8B;
-}
-nav a:hover {
-  color: #039be5;
-  background-color: #CFD8DC;
-}
-nav a.active {
-  color: #039be5;
-}
+/* ------ from taf V1 ------- */
 
-/* fin import TOH */
+/* ------ listes --------- */
 
-p {
-  line-height: 1.8em;
-}
-
-/* pour les listes li */
-
-ul {
+ul.tokl {
   list-style: none;
   padding-left: 0;
 }
 
-li {
-  line-height: 1.8em;
+li.tokl {
+  line-height: 1.3em;
   position: relative;
   margin-bottom:0.3em;
+  padding-left: 0.3em;
 }
 
-li:hover {
+li.tokl:hover {
   background-color: #EEEEEE;
 }
 
-/* weeklist */
-
-.detailPopup {
-  padding: 0 0.5em;
+h2.hDetail {
+  padding-left: 0.2em;
 }
 
-.dateRight {
-  text-align: right;
+textarea.largeTex {
+  width: 80%;
+  max-width: 40em;
+  height: 6em;
 }
 
-
-/* fin weeklist */
-
-/* liste de tags */
-
-
-ul.allthetags {
-  padding:0;
+#addTokInp {
+  width: 70%;
+  max-width: 30em;
 }
 
-ul.allthetags>li{
+input.largeInp {
+  width: 80%;
+  max-width: 40em;
+}
+
+input.mediumInp {
+  width: 70%;
+  max-width: 36em;
+}
+
+input.shortInp {
+  max-width: 10em;
+}
+
+ul.checkListLine {
+  padding-left: 0;
+}
+
+ul.checkListLine>li {
+  list-style-type: none;
+  display: inline-block;
+  margin-right: 0.2em;
+}
+
+#allthetags {
+  padding-left:0;
+}
+
+#allthetags>li{
   list-style-type: none;
   display: inline-block;
   margin: 0.3em;
-  line-height: 1.3em;
 }
 
-ul.allthetags>li>a {
+#allthetags>li>a {
   color: white;
   text-decoration: none;
 }
 
-ul.allthetags>li>a>span {
-  padding: 0.1em 0.3em;
+#allthetags>li>a>span {
+  padding: 0.1em 0.4em;
   border-radius: 0.8em;
 }
 
-/* fin liste de tags */
-
-.thetitle {
-  padding-top: 0.2em;
-  padding-left: 3em;
-  display: block;
+.theTag {
+  padding: 0.1em 0.4em;
+  border-radius: 0.8em;
+  color: white;
 }
-
-.done {
-  text-decoration: line-through;
-}
-
-.hide {
-  /* display: none; impossible de jouer avec cette règle car c'est surchargé par la suite (ou alors sauf à mettre !important */
-  display: none !important;
-}
-
-.show {
-  /* display: inline-block; impossible de jouer avec cette règle car c'est surchargé par la suite (ou alors sauf à mettre !important */
-
-}
-
-
-/* todoItem detail */
-
-
-.tdDetail {
-  position: relative;
-}
-
-span.inBackColorStripeH {
-  position: absolute;
-  top: 0.1em;
-}
-
-span.inBackColorStripeH>div {
-  width:0.4em;
-  height:1.8em;
-  display: block;
-}
-
-.weekdaystr {
-  clear: both;
-  font-size: 0.8em;
-  margin-top: 0;
-  padding-top: 0;
-}
-
-.infoId {
-  font-size: 0.8em;
-  color: Gray;
-  padding: 0.4em 0;
-}
-
-h2.shiftRight {
-  padding-left: 0.6em;
-}
-
-span.error {
-  font-size: 0.8em;
-  color: Red;
-  padding: 0.4em 0;
-}
-
-.dateButton {
-  margin-top: 1em;
-}
-
-/* fin todoItem detail */
-
-.alert {
-  color: red;
-}
-
-span.inBackColorStripeP {
-  position: absolute;
-  top: 0.4em;
-}
-
-span.inBackColorStripeP>div {
-  width:0.4em;
-  height:1.6em;
-  display: block;
-}
-
-.crKeyInfo {
-  font-size: 0.8em;
-  color: grey;
-}
-
-.numPage {
-  position: relative;
-  top: -0.4em;
-}
-
-footer {
-  margin-top: 2em;
-  font-size: 0.8em;
-  color: gray;
-}
-
-/* fin listes li */
 
 /* 80 CSS colors for background behind white text */
 
@@ -324,5 +245,88 @@ footer {
 
 /*  end of 80 CSS colors */
 
+/* 80 CSS colors for borders */
 
+.bord0 {border-left: 0.4em solid White;}
+.bord1 {border-left: 0.4em solid Blue;}
+.bord2 {border-left: 0.4em solid BlueViolet;}
+.bord3 {border-left: 0.4em solid Brown;}
+.bord4 {border-left: 0.4em solid BurlyWood;}
+.bord5 {border-left: 0.4em solid CadetBlue;}
+.bord6 {border-left: 0.4em solid Chocolate;}
+.bord7 {border-left: 0.4em solid Coral;}
+.bord8 {border-left: 0.4em solid CornflowerBlue;}
+.bord9 {border-left: 0.4em solid Crimson;}
+.bord10 {border-left: 0.4em solid DarkBlue;}
+.bord11 {border-left: 0.4em solid DarkCyan;}
+.bord12 {border-left: 0.4em solid DarkGoldenRod;}
+.bord13 {border-left: 0.4em solid DarkGreen;}
+.bord14 {border-left: 0.4em solid DarkOrange;}
+.bord15 {border-left: 0.4em solid DarkOrchid;}
+.bord16 {border-left: 0.4em solid DarkRed;}
+.bord17 {border-left: 0.4em solid DarkSalmon;}
+.bord18 {border-left: 0.4em solid DarkSeaGreen;}
+.bord19 {border-left: 0.4em solid DarkSlateBlue;}
+.bord20 {border-left: 0.4em solid DarkTurquoise;}
+.bord21 {border-left: 0.4em solid DarkViolet;}
+.bord22 {border-left: 0.4em solid DeepPink;}
+.bord23 {border-left: 0.4em solid DeepSkyBlue;}
+.bord24 {border-left: 0.4em solid DodgerBlue;}
+.bord25 {border-left: 0.4em solid FireBrick;}
+.bord26 {border-left: 0.4em solid ForestGreen;}
+.bord27 {border-left: 0.4em solid Fuchsia;}
+.bord28 {border-left: 0.4em solid Gold;}
+.bord29 {border-left: 0.4em solid GoldenRod;}
+.bord30 {border-left: 0.4em solid Green;}
+.bord31 {border-left: 0.4em solid HotPink;}
+.bord32 {border-left: 0.4em solid IndianRed;}
+.bord33 {border-left: 0.4em solid Indigo;}
+.bord34 {border-left: 0.4em solid LightCoral;}
+.bord35 {border-left: 0.4em solid LightPink;}
+.bord36 {border-left: 0.4em solid LightSalmon;}
+.bord37 {border-left: 0.4em solid LightSeaGreen;}
+.bord38 {border-left: 0.4em solid LightSkyBlue;}
+.bord39 {border-left: 0.4em solid LightSteelBlue;}
+.bord40 {border-left: 0.4em solid LimeGreen;}
+.bord41 {border-left: 0.4em solid Magenta;}
+.bord42 {border-left: 0.4em solid Maroon;}
+.bord43 {border-left: 0.4em solid MediumAquaMarine;}
+.bord44 {border-left: 0.4em solid MediumBlue;}
+.bord45 {border-left: 0.4em solid MediumOrchid;}
+.bord46 {border-left: 0.4em solid MediumPurple;}
+.bord47 {border-left: 0.4em solid MediumSeaGreen;}
+.bord48 {border-left: 0.4em solid MediumSlateBlue;}
+.bord49 {border-left: 0.4em solid MediumTurquoise;}
+.bord50 {border-left: 0.4em solid MediumVioletRed;}
+.bord51 {border-left: 0.4em solid MidnightBlue;}
+.bord52 {border-left: 0.4em solid Navy;}
+.bord53 {border-left: 0.4em solid Olive;}
+.bord54 {border-left: 0.4em solid OliveDrab;}
+.bord55 {border-left: 0.4em solid Orange;}
+.bord56 {border-left: 0.4em solid OrangeRed;}
+.bord57 {border-left: 0.4em solid Orchid;}
+.bord58 {border-left: 0.4em solid PaleVioletRed;}
+.bord59 {border-left: 0.4em solid Peru;}
+.bord60 {border-left: 0.4em solid Pink;}
+.bord61 {border-left: 0.4em solid Plum;}
+.bord62 {border-left: 0.4em solid Purple;}
+.bord63 {border-left: 0.4em solid RebeccaPurple;}
+.bord64 {border-left: 0.4em solid Red;}
+.bord65 {border-left: 0.4em solid RosyBrown;}
+.bord66 {border-left: 0.4em solid RoyalBlue;}
+.bord67 {border-left: 0.4em solid SaddleBrown;}
+.bord68 {border-left: 0.4em solid Salmon;}
+.bord69 {border-left: 0.4em solid SandyBrown;}
+.bord70 {border-left: 0.4em solid SeaGreen;}
+.bord71 {border-left: 0.4em solid Sienna;}
+.bord72 {border-left: 0.4em solid Silver;}
+.bord73 {border-left: 0.4em solid SkyBlue;}
+.bord74 {border-left: 0.4em solid SteelBlue;}
+.bord75 {border-left: 0.4em solid Tan;}
+.bord76 {border-left: 0.4em solid Teal;}
+.bord77 {border-left: 0.4em solid Tomato;}
+.bord78 {border-left: 0.4em solid Turquoise;}
+.bord79 {border-left: 0.4em solid Violet;}
+.bord80 {border-left: 0.4em solid YellowGreen;}
 
+/*  end of 80 border colors */

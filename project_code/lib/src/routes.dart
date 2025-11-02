@@ -1,63 +1,40 @@
-import 'package:angular_router/angular_router.dart';
-
+import 'package:ngrouter/ngrouter.dart';
 import 'route_paths.dart';
+import 'add_and_tag_list_component.template.dart' as add_and_tag_list_template;
+import 'toknow/toknow_detail_component.template.dart' as toknow_detail_template;
 import 'dashboard_component.template.dart' as dashboard_template;
-import 'params_component.template.dart' as params_template;
-import 'todo_list/todo_list_component.template.dart' as todo_list_template;
-import 'todo_list/todo_detail_component.template.dart' as todo_detail_template;
-import 'todo_list/todo_add_component.template.dart' as todo_add_template;
-import 'tag_list/tag_list_component.template.dart' as tag_list_template;
-
+import 'login_component.template.dart' as login_template;
 
 export 'route_paths.dart';
 
 class Routes {
-  static final accueil = RouteDefinition(
-    routePath: RoutePaths.accueil,
+  static final taglist = RouteDefinition(
+    routePath: RoutePaths.taglist,
+    component: add_and_tag_list_template.AddAndTagListComponentNgFactory,
+  );
+  static final toknow = RouteDefinition(
+    routePath: RoutePaths.toknow,
+    component: toknow_detail_template.ToknowDetailComponentNgFactory,
+  );
+
+  static final dashboard = RouteDefinition(
+    routePath: RoutePaths.dashboard,
     component: dashboard_template.DashboardComponentNgFactory,
   );
 
-  static final params = RouteDefinition(
-    routePath: RoutePaths.params,
-    component: params_template.ParamsComponentNgFactory,
-  );
-
-  static final list = RouteDefinition(
-    routePath: RoutePaths.list,
-    component: todo_list_template.TodoListComponentNgFactory,
-  );
-
-  static final listtag = RouteDefinition(
-    routePath: RoutePaths.listtag,
-    component: todo_list_template.TodoListComponentNgFactory,
-  );
-
-  static final detail = RouteDefinition(
-    routePath: RoutePaths.detail,
-    component: todo_detail_template.TodoDetailComponentNgFactory,
-  );
-
-  static final tag = RouteDefinition(
-    routePath: RoutePaths.tag,
-    component: tag_list_template.TagListComponentNgFactory,
-  );
-
-  static final add = RouteDefinition(
-    routePath: RoutePaths.add,
-    component: todo_add_template.TodoAddComponentNgFactory,
+  static final login = RouteDefinition(
+    routePath: RoutePaths.login,
+    component: login_template.LoginComponentNgFactory,
   );
 
   static final all = <RouteDefinition>[
-    accueil,
-    params,
-    list,
-    listtag,
-    detail,
-    tag,
-    add,
+    dashboard,
+    taglist,
+    toknow,
+    login,
     RouteDefinition.redirect(
       path: '',
-      redirectTo: RoutePaths.accueil.toUrl(),
+      redirectTo: RoutePaths.dashboard.toUrl(),
     ),
   ];
 }

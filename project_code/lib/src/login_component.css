@@ -1,0 +1,8 @@
+div.newLine {
+    clear: both;
+    margin-top: 0.5em;
+}
+
+input.choice, label.choice {
+    display: inline;
+}

@@ -1,30 +1,27 @@
-import 'package:angular_router/angular_router.dart';
+import 'package:ngrouter/ngrouter.dart';
 
-const tagParam = 'tag';
 const idParam = 'id';
-const pageParam = 'page';
+const nameParam = 'notag';
+const pageParam = '1';
 
 class RoutePaths {
-  static final accueil = RoutePath(path: 'accueil');
-  static final params = RoutePath(path: 'params');
-  static final list = RoutePath(path: 'list');
-  static final listtag = RoutePath(path: '${list.path}/:$tagParam/:$pageParam');
-  static final detail = RoutePath(path: 'detail/:$idParam');
-  static final tag = RoutePath(path: 'tag');
-  static final add = RoutePath(path: 'add');
+  static final dashboard = RoutePath(path: 'dashboard');
+  static final toknow = RoutePath(path: 'toknow/:$idParam');
+  static final taglist = RoutePath(path: 'taglist/:$nameParam/:$pageParam');
+  static final login = RoutePath(path: 'login');
 }
 
-String getId(Map<String, String> parameters) {
+String? getId(Map<String, String> parameters) {
   final id = parameters[idParam];
   return id;
 }
 
-String getTag(Map<String, String> parameters) {
-  final tag = parameters[tagParam];
-  return tag;
+String? getName(Map<String, String> parameters) {
+  final name = parameters[nameParam];
+  return name;
 }
 
-String getPage(Map<String, String> parameters) {
+String? getPage(Map<String, String> parameters) {
   final page = parameters[pageParam];
   return page;
 }

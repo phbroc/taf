@@ -1,281 +1,294 @@
-// Copyright (c) 2017, philippe. All rights reserved. Use of this source code
-// is governed by a BSD-style license that can be found in the LICENSE file.
-
-import 'dart:html';
-
-import 'package:angular/angular.dart';
-import 'package:angular_router/angular_router.dart';
-import 'package:angular_components/angular_components.dart';
+import 'package:ngdart/angular.dart';
+import 'package:ngrouter/ngrouter.dart';
+import 'package:http/http.dart';
 import 'package:intl/intl.dart';
-import 'dart:async';
-import 'src/routes.dart';
-import 'src/todo_list/todo.dart';
-
-import 'src/app_config.dart';
-
+import 'app_config.dart';
+import 'dart:convert';
+import 'dart:html';
 import 'in_memory_data_service.dart';
-import 'local_data_service.dart';
+import 'local_storage_data_service.dart';
 import 'server_data_service.dart';
-import 'event_bus.dart';
+import 'message_service.dart';
+import 'src/routes.dart';
+import 'src/toknow/toknow.dart';
+import 'src/commons.dart';
 
-
-// AngularDart info: https://webdev.dartlang.org/angular
-// Components info: https://webdev.dartlang.org/components
-
-
+const appConfigOpaqueToken = OpaqueToken('app.config');
 
 @Component(
   selector: 'my-app',
-  styleUrls: ['app_component.css'],
   templateUrl: 'app_component.html',
-  pipes: [commonPipes],
-  directives: [routerDirectives,
-                MaterialIconComponent,
-                      ],
-  providers: [materialProviders,
-
-                    ClassProvider(ServerDataService),
-                    ClassProvider(LocalDataService),
-                    ClassProvider(EventBus),
-                    FactoryProvider(AppConfig, appConfigFactory),
-
+  providers: [
+    Provider(appConfigOpaqueToken, useFactory:tafConfigFactory),
+    ClassProvider(InMemoryDataService),
+    ClassProvider(LocalStorageDataService),
+    ClassProvider(ServerDataService),
+    ClassProvider(MessageService),
+  ],
+  directives: [
+    coreDirectives,
+    routerDirectives
   ],
   exports: [RoutePaths, Routes],
 )
 
-
 class AppComponent implements OnInit {
-
-  //
-  final LocalDataService localDataService;
-  final ServerDataService serverDataService;
-  final EventBus eventBus;
-  String user;
-  String title;
+  String title = '';
+  String homeLinkStr = '';
+  String userLinkStr = '';
+  String loginStr = '';
+  String onLineStr = '';
+  String offLineStr = '';
+  String synchronizedStr = '';
+  final InMemoryDataService _inMemoryDataService;
+  late String user;
+  String shareUser = '';
+  final _headers = {'Content-Type': 'application/json'};
+  final _mockUrlTag = 'api/tag';
+  final _mockUrlAllToknows = 'api/toknows';
+  final _mockUrlToknow = 'api/toknow';
+  final _mockUrlLang = 'api/lang';
+  final _mockUrlUser = "api/user";
   bool connected = false;
-  bool isOnline = false;
+  bool isOnLine = false;
+  bool synchroOn = false;
+  bool initDone = false;
+  DateTime dayhourSync = DateTime(2025, 1, 1);
+  static final datePromptFormat = DateFormat('dd/MM/yyyy HH:mm:ss');
+  String promptDayhourSync = '';
 
-  final DateFormat dformat = DateFormat('yyyy-MM-dd HH:mm:ss');
-  // initialisation de la date de synchro
-  DateTime dtSynchronised = null;
-  DateTime dtLocaleStored = DateTime.now();
+  AppComponent(
+      @Inject(appConfigOpaqueToken) AppConfig config,
+      this._inMemoryDataService) {
 
-  // deux todoItems temporaires pour faire des micro sauvegardes.
-  Todo tempTodo1;
-  Todo tempTodo2;
-
-  //AppComponent(this.localDataService, this.inMemoryData);
-  AppComponent(AppConfig config, this.localDataService, this.serverDataService, this.eventBus) {
-    title = config.title;
-    user = config.user;
-
-    // pour essayer d'écouter un évènement
-    eventBus.onEventStreamLog.listen((Event e) {
-      print("event log ... "+e.type);
-      if (e.type == "login") {
-        connected = true;
-        isOnline = true;
-        synchroServer();
-      }
-      if (e.type == "logoff") connected = false;
-    });
-
-    eventBus.onEventStreamTodoChanged.listen((String s) {
-      print("event todo changed in appComponent... " + s);
-      // memoriser les microchangements
-      tempTodo2 = tempTodo1;
-      tempTodo1 = InMemoryDataService.giveById(s);
-      checkStorage();
-    });
-
-    eventBus.onEventStreamTodoAdded.listen((String s) {
-      print("event todo added in appComponent... " + s);
-      tempTodo2 = tempTodo1;
-      tempTodo1 = InMemoryDataService.giveById(s);
-      checkStorage();
-    });
+    user = config.shareUser;
 
     window.onOffline.listen((Event e) {
-      print("offline event...");
-      isOnline = false;
+      isOnLine = false;
     });
 
     window.onOnline.listen((Event e) {
-      print("online event...");
-      isOnline = true;
-      checkConnected();
+      isOnLine = true;
+      _synchroServer();
+    });
+
+    MessageService.doneController.stream.listen((event) async {
+      if ((event.toString() == "post done") || (event.toString() == "put done")) {
+        if (initDone) _saveLocal();
+        if ((connected) && (isOnLine) && (!synchroOn)) {
+          bool success = await _synchroServer();
+        }
+      }
+      else if (event.toString() == "user connected") {
+        connected = true;
+        isOnLine = true;
+        // refresh user
+        final responseU = await _inMemoryDataService.get(Uri.parse(_mockUrlUser));
+        final userData = _extractData(responseU);
+        user = userData['user'];
+        bool success = await _synchroServer();
+      }
+      else if (event.toString() == "user disconnected") {
+        connected = false;
+        // refresh user
+        final responseU = await _inMemoryDataService.get(Uri.parse(_mockUrlUser));
+        final userData = _extractData(responseU);
+        user = userData['user'];
+      }
+      else if (event.toString().substring(0, 12) == "lang changed") {
+        int langId = int.parse(event.toString().substring(13, 14));
+        title = config.appTitle[langId];
+        homeLinkStr = config.homeLink[langId];
+        userLinkStr = config.userLink[langId];
+      }
+      else if (event.toString() == "local init done") {
+        initDone = true;
+      }
     });
   }
 
+  @override
+  void ngOnInit() async {
+    ServerDataService.setup(
+        tafConfigFactory().apiUrl,
+        tafConfigFactory().userUrl,
+        tafConfigFactory().toknowUrl
+    );
 
+    final responseL = await _inMemoryDataService.put(Uri.parse("$_mockUrlLang/FR"));
+    int langId = 0;
 
+    title = tafConfigFactory().appTitle[langId];
+    homeLinkStr = tafConfigFactory().homeLink[langId];
+    userLinkStr = tafConfigFactory().userLink[langId];
+    onLineStr = tafConfigFactory().onLine[langId];
+    offLineStr = tafConfigFactory().offLine[langId];
+    synchronizedStr = tafConfigFactory().synchronized[langId];
+    shareUser = tafConfigFactory().shareUser;
 
+    LocalStorageDataService.setup(tafConfigFactory().localStName);
 
-  Future<void> ngOnInit() async {
-    print("ngOnInit()...");
-    DateTime dloc;
-    DateTime dtemp;
-
-    // récupérer la date de la dernière synchro si mémorisée
-    DateTime dh = localDataService.getDayhourSync(user);
-
-    if (dh != null) {
-      dtSynchronised = dh;
-      print("dayhour... "+dformat.format(dh)+".");
+    try {
+      // check if user is connected (like in login component)
+      Map<String, String>? ul = LocalStorageDataService.getUser();
+      // ... if ul is not shareUser...
+      if ((ul != null) && (ul['user'] != tafConfigFactory().shareUser)) {
+        user = ul['user']!;
+        String token = ul['token']!;
+        String email = ul['email']!;
+        final responseU = await _inMemoryDataService.put(Uri.parse("$_mockUrlUser/$user"),
+            headers: _headers,
+            body: json.encode({'token': token, 'email': email})
+        );
+        String? uc = await Commons.getUserConnected();
+        if ((uc == user)) {
+          connected = true;
+          isOnLine = true;
+        }
+      }
+      else {
+        user = tafConfigFactory().shareUser;
+        final responseU = await _inMemoryDataService.put(Uri.parse("$_mockUrlUser/$user"),
+            headers: _headers,
+            body: json.encode({'token': '', 'email': ''})
+        );
+      }
+    } catch (e) {
+      // _handleError(e);
+      Map<String, String>?  ul = LocalStorageDataService.getUser();
+      if ((ul != null) && (ul['user'] != tafConfigFactory().shareUser)) {
+        user = ul['user']!;
+        String token = ul['token']!;
+        String email = ul['email']!;
+        final responseU = await _inMemoryDataService.put(Uri.parse("$_mockUrlUser/$user"),
+            headers: _headers,
+            body: json.encode({'token': token, 'email': email})
+        );
+      }
+      else {
+        user = tafConfigFactory().shareUser;
+        final responseU = await _inMemoryDataService.put(Uri.parse("$_mockUrlUser/$user"),
+            headers: _headers,
+            body: json.encode({'token': '', 'email': ''})
+        );
+      }
     }
 
-
-    // important de démarrer avec ce reset pour commencer
-    InMemoryDataService.resetDb();
-    // récupérer la liste de todoItems qui serait en localhost
-    InMemoryDataService.startWithAll(localDataService.getTodoList(user));
-
-    if (InMemoryDataService.giveMaxTodoId()>0) {
-      // vérifier s'il y a des sauvegardes temporaires
-      print("check tempTodo 1 et 2...");
-      tempTodo1 = localDataService.getTempTodo1(user);
-      if (tempTodo1 != null) {
-        print("tempTodo1... "+tempTodo1.id+" "+tempTodo1.dayhour.toString());
-        if (InMemoryDataService.giveById(tempTodo1.id)!=null) {
-          dloc = DateTime.parse(InMemoryDataService
-              .giveById(tempTodo1.id)
-              .dayhour);
-          dtemp = DateTime.parse(tempTodo1.dayhour);
-          if (dloc.isBefore(dtemp)) InMemoryDataService.modify(tempTodo1);
-        }
-        else InMemoryDataService.insert(tempTodo1);
-        print("memory refreshed with tempTodo1.");
+    try {
+      if (connected) {
+        // final responseU = await _inMemoryDataService.put(Uri.parse("$_mockUrlUser/$user"));
+        isOnLine = true;
+        bool success = await _synchroServer();
       }
 
-      tempTodo2 = localDataService.getTempTodo2(user);
-      if (tempTodo2 != null) {
-        print("tempTodo2... "+tempTodo2.id+" "+tempTodo2.dayhour.toString());
-        if (InMemoryDataService.giveById(tempTodo2.id)!=null) {
-          dloc = DateTime.parse(InMemoryDataService
-              .giveById(tempTodo2.id)
-              .dayhour);
-          dtemp = DateTime.parse(tempTodo2.dayhour);
-          if (dloc.isBefore(dtemp)) InMemoryDataService.modify(tempTodo2);
-        }
-        else InMemoryDataService.insert(tempTodo2);
-        print("memory refreshed with tempTodo2.");
+      final List<Toknow> startToknows = await LocalStorageDataService.loadToknows();
+      for (var toknow in startToknows) {
+        var responseT = await _inMemoryDataService.post(
+            Uri.parse(_mockUrlToknow),
+            headers: _headers,
+            body: json.encode(toknow.toJson())
+        );
       }
-    }
 
-    connected = await checkConnected();
-
-    if (connected) {
-      synchroServer();
+      MessageService.send("local init done");
+    } catch (e) {
+      throw _handleError(e);
     }
   }
 
-  Future<bool> checkConnected() async {
-    String t = localDataService.getToken(user);
-    bool retBool = false;
+  dynamic _extractData(Response resp) => json.decode(resp.body)['data'];
+
+  void _saveLocal() async {
     try {
-      if (t != null) {
-        retBool = await serverDataService.checkToken(user, t);
-        // s'il n'y a pas d'exception passé cette ligne c'est qu'il y a du réseau
-        isOnline = true;
-      }
-      else retBool = false;
-      return retBool;
+      // local save
+      final responseAllToknows = await _inMemoryDataService.get(Uri.parse(_mockUrlAllToknows));
+      final List<Toknow> allToknows = (_extractData(responseAllToknows) as List)
+          .map((json) => Toknow.fromJson(json))
+          .toList();
+      LocalStorageDataService.saveToknows(allToknows);
     } catch (e) {
-      print("error calling network");
-      isOnline = false;
+      throw _handleError(e);
+    }
+  }
+
+  Future<bool> _synchroServer() async {
+    synchroOn = true;
+    String? dhs = LocalStorageDataService.getDayHourSync();
+    if (dhs != null) {
+      dayhourSync = DateTime.parse(dhs);
+    }
+    if (user != tafConfigFactory().shareUser) {
+      final responseU = await _inMemoryDataService.get(Uri.parse("$_mockUrlUser/$user"));
+      final userData = _extractData(responseU);
+      String? token = userData['token'];
+      if (token != null) {
+        final responseSyncToknows = await _inMemoryDataService.get(Uri.parse("$_mockUrlAllToknows/since/${dayhourSync.toIso8601String()}"));
+        final List<Toknow> syncToknows = (_extractData(responseSyncToknows) as List)
+            .map((json) => Toknow.fromJson(json))
+            .toList();
+        final responseS = await ServerDataService.synchroToknowList(syncToknows, dayhourSync, token);
+
+        if (responseS.statusCode == 200) {
+          final List<Toknow> syncToknowsAfter =  (_extractData(responseS)["toknows"] as List)
+              .map((json) => Toknow.fromJson(json))
+              .toList();
+
+          for (var toknow in syncToknowsAfter) {
+            // check for toknow to delete because of version XX
+            // print("debug toknow after ${toknow.id}");
+            if (toknow.version == 'XX') {
+              await _inMemoryDataService.delete(
+                  Uri.parse(_mockUrlToknow),
+                  headers: _headers,
+                  body: json.encode(toknow.toJson())
+              );
+            }
+            else {
+              // check if PUT or POST
+              final toknowExists = await _inMemoryDataService.get(Uri.parse("$_mockUrlToknow/${toknow.id}"));
+              if (_extractData(toknowExists) != null) {
+                await _inMemoryDataService.put(
+                    Uri.parse(_mockUrlToknow),
+                    headers: _headers,
+                    body: json.encode(toknow.toJson())
+                );
+              }
+              else {
+                await _inMemoryDataService.post(
+                    Uri.parse(_mockUrlToknow),
+                    headers: _headers,
+                    body: json.encode(toknow.toJson())
+                );
+              }
+            }
+          }
+          _saveLocal();
+          dayhourSync = DateTime.now();
+          LocalStorageDataService.saveDayHourSync(dayhourSync.toIso8601String());
+          synchroOn = false;
+          promptDayhourSync = datePromptFormat.format(dayhourSync);
+          return true;
+        }
+        else {
+          synchroOn = false;
+          return false;
+        }
+      }
+      else {
+        synchroOn = false;
+        return false;
+      }
+    }
+    else {
+      synchroOn = false;
       return false;
     }
   }
 
-  Future<void> checkStorage() async {
-    DateTime dtEvent = DateTime.now();
-    Duration difference = dtEvent.difference(dtLocaleStored);
-    if (difference.inSeconds > 30) {
-      dtLocaleStored = DateTime.now();
-      saveLocal();
-    }
-    else {
-      if (tempTodo1 != null) localDataService.saveTempTodo1(tempTodo1, user);
-      if (tempTodo2 != null) localDataService.saveTempTodo2(tempTodo2, user);
-    }
-    // vérifier maintenant la synchro server, si onLine et dtSynchronised ancienne alors faire synchroServer.
-    if (isOnline) {
-      if (!connected) {
-        connected = await checkConnected();
-      }
-      difference = dtEvent.difference(dtSynchronised);
-      print("check synchro... difference="+difference.inSeconds.toString());
-      if ((difference.inSeconds > 240) && connected) {
-        await synchroServer();
-      }
-    }
+
+
+  Exception _handleError(dynamic e) {
+    print('App component error; cause: $e !'); // for demo purposes only
+    return Exception('App component error; cause: $e !');
   }
-
-
-  void saveLocal() {
-    print("onsave()...");
-    localDataService.saveTodoList(InMemoryDataService.giveAll(), user);
-    tempTodo1 = null;
-    tempTodo2 = null;
-  }
-
-  Future<void> synchroServer() async {
-    if (dtSynchronised != null) print("onsynchro()... "+dformat.format(dtSynchronised)+".");
-    else print("onsynchro()...");
-
-    List<Todo> serverTodoItems = [];
-    Todo todoItem;
-    String token = localDataService.getToken(user);
-    // si on connait déjà une date de synchro, ça a déjà été synchronisé
-    if (dtSynchronised != null) serverTodoItems = await serverDataService.synchroTodoList(InMemoryDataService.giveAllSince(dtSynchronised), dtSynchronised, user, token);
-    // sinon, il faut synchroniser tout ce qui est possible, je recherche à une date très ancienne
-    else {
-      serverTodoItems = await serverDataService.synchroTodoList(InMemoryDataService.giveAll(), DateTime.utc(1989, 11, 9), user, token);
-      dtSynchronised = DateTime.now();
-    }
-    //
-    if (serverTodoItems != null) serverTodoItems.forEach((serverTodoItem) {
-      print("response server dealing with..." + serverTodoItem.id);
-      todoItem = InMemoryDataService.giveById(serverTodoItem.id);
-      if (todoItem != null) {
-        if (serverTodoItem.version != "XX") {
-            todoItem.dayhour = serverTodoItem.dayhour;
-            todoItem.version = serverTodoItem.version;
-            // securité, on teste si le titre en retour du serveur n'est pas égal à "no title!" car dans le cas contraire c'est qu'il y a un problème dans toute la partie data, sans doute qu'elle est vide sur le serveur à cause d'un bug
-            if (serverTodoItem.title != "no title!") {
-              todoItem.title = serverTodoItem.title;
-              todoItem.description = serverTodoItem.description;
-              if (serverTodoItem.done != null) todoItem.done = serverTodoItem.done;
-              else todoItem.done = false;
-              todoItem.tag = serverTodoItem.tag;
-              todoItem.color = serverTodoItem.color;
-              todoItem.end = serverTodoItem.end;
-              todoItem.priority = serverTodoItem.priority;
-              if (serverTodoItem.quick != null) todoItem.quick = serverTodoItem.quick;
-              else todoItem.quick = false;
-              if (serverTodoItem.crypto != null) todoItem.crypto = serverTodoItem.crypto;
-              else todoItem.crypto = false;
-            }
-            else {
-              // là par sécurité on va garder les info qui étaient présentes avant la synchro en commençant par un warning sur le title
-              todoItem.title = "!BUG DATABASE LOST DATA! " + todoItem.title;
-            }
-        }
-        else {
-          InMemoryDataService.clearById(todoItem.id);
-        }
-      }
-      else if (serverTodoItem.version != "XX") {
-        InMemoryDataService.insert(serverTodoItem);
-      }
-      // mettre à jour la date de synchro en fonction des résultats du serveur
-      if (dtSynchronised.isBefore(DateTime.parse(serverTodoItem.dayhour))) {
-        dtSynchronised = DateTime.parse(serverTodoItem.dayhour);
-      }
-      localDataService.saveDayhourSync(user, dtSynchronised);
-    });
-    // faire un local save à la fin pour garder la base local en conformité
-    if (serverTodoItems.length > 0) localDataService.saveTodoList(InMemoryDataService.giveAll(), user);
-  }
-
 }

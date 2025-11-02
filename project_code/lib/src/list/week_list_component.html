@@ -1,0 +1,42 @@
+<div id="weeknav">
+    <button [hidden]="week==-1" (click)="previousToknows()">{{previousStr}}</button>
+    <button [hidden]="week==1" (click)="nextToknows()">{{nextStr}}</button>
+</div>
+
+<h3>{{title}}</h3>
+
+<div id="overlay" [hidden]="!more" (click)="close()">
+
+</div>
+
+<div id="more" [hidden]="!more">
+    <p><span class="theTag col{{moreColor}}">{{moreTag}}</span></p>
+    <p>{{moreDescription}}</p>
+    <p>
+        {{moreDay}}
+        <button (click)="goToknowDetail(moreId)">{{editStr}}</button>
+        <button (click)="close()">{{closeStr}}</button>
+    </p>
+</div>
+
+<ul class="tokl">
+    <ng-container *ngFor="let toknow of toknows" >
+        <li *ngIf="toknow.version != 'DD'" class="tokl bord{{toknow.color}}">
+            <input [(ngModel)]="toknow.done" type="checkbox" id="done{{toknow.id}}"
+                   #done class="check" (change)="doneOnOff(toknow, done.checked)">
+            <span [class.done]="done.checked!"
+                  [class.inThePast]="isInThePast(toknow.end)">
+                {{toknow.title}}
+            </span>
+            <span [hidden]="toknow.id.substring(0,3)!=shareUser">
+                {{sharedStr}}
+            </span>
+            <button [hidden]="!done.checked!"
+                    (click)="remove(toknow)">{{deleteStr}}</button>
+            <button [hidden]="done.checked!"
+                    (click)="read(toknow.id, toknow.description, toknow.end, toknow.tag)">{{readMoreStr}}</button>
+        </li>
+    </ng-container>
+</ul>
+<p *ngIf="toknows.isEmpty">{{nothingStr}}</p>
+

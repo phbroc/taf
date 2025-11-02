@@ -1,0 +1,8 @@
+<h3>{{tagsStr}}</h3>
+<ul id="allthetags">
+    <li *ngFor="let tag of tags">
+        <a [routerLink]="tagListUrl(tag.name)">
+            <span class="col{{tag.color}}">{{tag.name}}</span>
+        </a>
+    </li>
+</ul>
