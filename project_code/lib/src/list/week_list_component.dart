@@ -41,6 +41,7 @@ class WeekListComponent implements OnInit {
   String editStr = '';
   String closeStr = '';
   String sharedStr = '';
+  String quickStr = '';
   String shareUser = '';
   int langId = 0;
   bool more = false;
@@ -90,7 +91,8 @@ class WeekListComponent implements OnInit {
     editStr = config.edit[langId];
     closeStr = config.close[langId];
     sharedStr = config.shared[langId];
-    shareUser = config.shareUser[langId];
+    shareUser = config.shareUser;
+    quickStr = config.quick[langId];
     _getToknows();
   }
 

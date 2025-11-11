@@ -69,7 +69,8 @@ class AppComponent implements OnInit {
 
     window.onOnline.listen((Event e) {
       isOnLine = true;
-      _synchroServer();
+      bool success = _synchroServer() as bool;
+      print("app_component onLine event synchro done: $success");
     });
 
     MessageService.doneController.stream.listen((event) async {
@@ -77,6 +78,7 @@ class AppComponent implements OnInit {
         if (initDone) _saveLocal();
         if ((connected) && (isOnLine) && (!synchroOn)) {
           bool success = await _synchroServer();
+          print("app_component synchro done: $success");
         }
       }
       else if (event.toString() == "user connected") {
@@ -86,7 +88,9 @@ class AppComponent implements OnInit {
         final responseU = await _inMemoryDataService.get(Uri.parse(_mockUrlUser));
         final userData = _extractData(responseU);
         user = userData['user'];
+        print("app_component user connected $user");
         bool success = await _synchroServer();
+        print("app_component synchro done: $success");
       }
       else if (event.toString() == "user disconnected") {
         connected = false;
@@ -94,6 +98,15 @@ class AppComponent implements OnInit {
         final responseU = await _inMemoryDataService.get(Uri.parse(_mockUrlUser));
         final userData = _extractData(responseU);
         user = userData['user'];
+        String? dhs = LocalStorageDataService.getDayHourSync();
+        if (dhs != null) {
+          dayhourSync = DateTime.parse(dhs);
+          promptDayhourSync = datePromptFormat.format(dayhourSync);
+        }
+        else {
+          promptDayhourSync = "";
+        }
+        print("app_component disconnected");
       }
       else if (event.toString().substring(0, 12) == "lang changed") {
         int langId = int.parse(event.toString().substring(13, 14));
@@ -103,6 +116,7 @@ class AppComponent implements OnInit {
       }
       else if (event.toString() == "local init done") {
         initDone = true;
+        print("app_component local init done");
       }
     });
   }
@@ -111,6 +125,8 @@ class AppComponent implements OnInit {
   void ngOnInit() async {
     ServerDataService.setup(
         tafConfigFactory().apiUrl,
+        tafConfigFactory().authAltHeader,
+        tafConfigFactory().authAltProcess,
         tafConfigFactory().userUrl,
         tafConfigFactory().toknowUrl
     );
@@ -130,9 +146,9 @@ class AppComponent implements OnInit {
 
     try {
       // check if user is connected (like in login component)
-      Map<String, String>? ul = LocalStorageDataService.getUser();
+      Map<String, String?> ul = LocalStorageDataService.getUser();
       // ... if ul is not shareUser...
-      if ((ul != null) && (ul['user'] != tafConfigFactory().shareUser)) {
+      if ((ul != null) && (ul['user'] != null) && (ul['user'] != '') && (ul['user'] != tafConfigFactory().shareUser)) {
         user = ul['user']!;
         String token = ul['token']!;
         String email = ul['email']!;
@@ -155,7 +171,7 @@ class AppComponent implements OnInit {
       }
     } catch (e) {
       // _handleError(e);
-      Map<String, String>?  ul = LocalStorageDataService.getUser();
+      Map<String, String?>  ul = LocalStorageDataService.getUser();
       if ((ul != null) && (ul['user'] != tafConfigFactory().shareUser)) {
         user = ul['user']!;
         String token = ul['token']!;
@@ -179,15 +195,18 @@ class AppComponent implements OnInit {
         // final responseU = await _inMemoryDataService.put(Uri.parse("$_mockUrlUser/$user"));
         isOnLine = true;
         bool success = await _synchroServer();
+        print("app_component synchro done: $success");
       }
 
-      final List<Toknow> startToknows = await LocalStorageDataService.loadToknows();
-      for (var toknow in startToknows) {
-        var responseT = await _inMemoryDataService.post(
-            Uri.parse(_mockUrlToknow),
-            headers: _headers,
-            body: json.encode(toknow.toJson())
-        );
+      final List<Toknow> startToknows = LocalStorageDataService.loadToknows();
+      if (startToknows.isNotEmpty) {
+        for (var toknow in startToknows) {
+          var responseT = await _inMemoryDataService.post(
+              Uri.parse(_mockUrlToknow),
+              headers: _headers,
+              body: json.encode(toknow.toJson())
+          );
+        }
       }
 
       MessageService.send("local init done");
@@ -217,6 +236,10 @@ class AppComponent implements OnInit {
     if (dhs != null) {
       dayhourSync = DateTime.parse(dhs);
     }
+    else {
+      dayhourSync = DateTime(2025, 1, 1);
+    }
+    print("app_component synchro on, $user since ${dayhourSync.toIso8601String()}");
     if (user != tafConfigFactory().shareUser) {
       final responseU = await _inMemoryDataService.get(Uri.parse("$_mockUrlUser/$user"));
       final userData = _extractData(responseU);

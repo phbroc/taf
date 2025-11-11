@@ -7,13 +7,17 @@ import 'src/toknow/toknow.dart';
 class ServerDataService {
   static final Client _http = Client();
   static late String _apiUrl;
+  static late String _authAltHeader;
+  static late String _authAltProcess;
   static late String _userUrl;
   static late String _toknowUrl;
 
-  static void setup(String api, String user, String toknow) {
+  static void setup(String api, String authAltHeader, String authAltProcess, String user, String toknow) {
     _apiUrl = api;
     _userUrl = "$api/$user";
     _toknowUrl = "$api/$toknow";
+    _authAltHeader = authAltHeader;
+    _authAltProcess = authAltProcess;
   }
 
   static Future<Response> connect(String user, String password) async {
@@ -23,7 +27,8 @@ class ServerDataService {
           Uri.parse(_userUrl),
           headers: {
             'Content-Type': 'application/json; charset=utf-8',
-            'Authorization': 'Bearer Null'
+            'Authorization': 'Bearer Null',
+            _authAltHeader: '${_authAltProcess}Null',
           },
           body: jsonEncode({
             'user': user,
@@ -42,7 +47,8 @@ class ServerDataService {
           Uri.parse(_userUrl),
           headers: {
             'Content-Type': 'application/json; charset=utf-8',
-            'Authorization': 'Bearer $token'
+            'Authorization': 'Bearer $token',
+            _authAltHeader: '${_authAltProcess}$token'
           },
           body: jsonEncode({
             'user': user,
@@ -56,16 +62,17 @@ class ServerDataService {
     }
   }
 
-  static Future<Response> disconnect(String u, String t) async {
+  static Future<Response> disconnect(String user, String token) async {
     try {
       final responseD = await _http.post(
           Uri.parse(_userUrl),
           headers: {
             'Content-Type': 'application/json; charset=utf-8',
-            'Authorization': 'Bearer $t'
+            'Authorization': 'Bearer $token',
+            _authAltHeader: '${_authAltProcess}$token'
           },
           body: jsonEncode({
-            'user': u
+            'user': user
           }));
       return responseD;
     }
@@ -74,13 +81,14 @@ class ServerDataService {
     }
   }
 
-  static Future<Response> checkToken(String t) async {
+  static Future<Response> checkToken(String token) async {
     try {
       final responseU = await _http.get(
           Uri.parse(_userUrl),
           headers: {
             'Content-Type': 'application/json; charset=utf-8',
-            'Authorization': 'Bearer $t'
+            'Authorization': 'Bearer $token',
+            _authAltHeader: '${_authAltProcess}$token'
           });
       return responseU;
     }
@@ -89,20 +97,21 @@ class ServerDataService {
     }
   }
 
-  static Future<Response> synchroToknowList(List<Toknow> l, DateTime dh, String t) async {
+  static Future<Response> synchroToknowList(List<Toknow> toknows, DateTime dayhour, String token) async {
     try {
       var tList = [];
-      for (Toknow t in l) {
+      for (Toknow t in toknows) {
         tList.add(t.toJson());
       }
       final responseT = await _http.post(
           Uri.parse(_toknowUrl),
           headers: {
             'Content-Type': 'application/json; charset=utf-8',
-            'Authorization': 'Bearer $t'
+            'Authorization': 'Bearer $token',
+            _authAltHeader: '${_authAltProcess}$token'
           },
           body: jsonEncode({
-            'dayhour': dh.toIso8601String(),
+            'dayhour': dayhour.toIso8601String(),
             'toknows': tList
           }));
       return responseT;

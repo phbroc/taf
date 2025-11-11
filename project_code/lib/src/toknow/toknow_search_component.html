@@ -9,8 +9,11 @@
       <ng-container *ngFor="let toknow of $pipe.async(toknows)" >
         <li *ngIf="toknow.version != 'DD'" class="tokl bord{{toknow.color}}">
             <span [class.done]="toknow.done">{{toknow.title}}</span>
-            <span [hidden]="toknow.id.substring(0,3)!=shareUser">
-                    {{sharedStr}}
+            <span *ngIf="toknow.id.substring(0,3)==shareUser">
+                {{sharedStr}}
+            </span>
+            <span *ngIf="toknow.quick">
+                {{quickStr}}
             </span>
             <button (click)="goToknowDetail(toknow.id)">{{editStr}}</button>
         </li>

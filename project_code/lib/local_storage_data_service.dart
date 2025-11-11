@@ -11,7 +11,7 @@ class LocalStorageDataService {
     localName = n;
   }
 
-  static void saveToknows(List<Toknow> toknows) async {
+  static void saveToknows(List<Toknow> toknows) {
     if (toknows.isNotEmpty) {
       var tList = [];
       for (Toknow t in toknows) {
@@ -22,7 +22,7 @@ class LocalStorageDataService {
     }
   }
 
-  static Future<List<Toknow>> loadToknows() async {
+  static List<Toknow> loadToknows() {
     List<Toknow> toknows = <Toknow>[];
     var jsonData;
     jsonData = localStorage['tk_$localName'];
@@ -36,46 +36,47 @@ class LocalStorageDataService {
     return toknows;
   }
 
-  /*
-  static void saveToken(String t) {
-    var jsonData = json.encode({'data': t});
-    localStorage['bt_$localName'] = jsonData;
+  static void resetToknows() {
+    var jsonData = json.encode({'data': []});
+    localStorage['tk_$localName'] = jsonData;
   }
-
-  static String? getToken() {
-    var jsonData;
-    jsonData = localStorage['bt_$localName'];
-    if (jsonData != null) {
-      return jsonDecode(jsonData)['data'];
-    }
-    else {
-      return null;
-    }
-  }
-  */
 
   static void saveUser(String u, String t, String e) {
     var jsonData = json.encode({'user': u, 'token': t, 'email': e});
     localStorage['us_$localName'] = jsonData;
   }
 
-  static Map<String, String>? getUser() {
+  static void resetUser() {
+    var jsonData = json.encode({'user': null, 'token': null, 'email': null});
+    localStorage['us_$localName'] = jsonData;
+  }
+
+  static Map<String, String?> getUser() {
     var jsonData;
     jsonData = localStorage['us_$localName'];
     if (jsonData != null) {
-      final userData = <String, String>{'user': jsonDecode(jsonData)['user'],
+      final userData = <String, String?>{'user': jsonDecode(jsonData)['user'],
         'token': jsonDecode(jsonData)['token'],
         'email': jsonDecode(jsonData)['email']
       };
       return Map.fromEntries(userData.entries);
     }
     else {
-      return null;
+      return {'user': null,
+        'token': null,
+        'email': null
+      };
     }
   }
 
   static void saveDayHourSync(String dh) {
     var jsonData = json.encode({'data': dh});
+    localStorage['dh_$localName'] = jsonData;
+  }
+
+  static void resetDayHourSync() {
+    //final DateTime resetDate = DateTime(2025, 1, 1);
+    var jsonData = json.encode({'data': null}); //resetDate.toIso8601String()});
     localStorage['dh_$localName'] = jsonData;
   }
 

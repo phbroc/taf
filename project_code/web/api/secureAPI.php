@@ -11,6 +11,7 @@ class SecureAPI {
     private $user;
 	private $log;
 	private $bd;
+	private $sharedUser;
     
     public function __construct() {
         $this->auth = new BearerAuth();
@@ -23,11 +24,12 @@ class SecureAPI {
 		
 		$this->log = new Log('logs',Log::DEBUG);
 		$this->bd = new AccessBD();
+		$this->sharedUser = 'SHR';
     }
     
     private function setSecurityHeaders() {
         header('Content-Type: application/json');
-        header('Access-Control-Allow-Origin: *');
+	header('Access-Control-Allow-Origin: *');
         header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
         header('Access-Control-Allow-Headers: *');
         
@@ -103,7 +105,7 @@ class SecureAPI {
                 
             case 'POST':
                 $input = $this->getJsonInput();
-                $this->log->logDebug("POST user... ".$input['user'].".");
+                //$this->log->logDebug("POST user... ".$input['user']);
                 
                 if ((isset($input['user'])) && (isset($input['password']))) {
 					// check if password is correct
@@ -189,6 +191,12 @@ class SecureAPI {
 							array_push($toknowsResponse, $toknowLine);
 						}
 					}
+					$toknowsSharedSince = $this->bd->selectUserToknowsSince($this->sharedUser, $input["dayhour"]);
+					if ($toknowsSharedSince) {
+						while ($toknowLine = $this->bd->nextLine($toknowsSharedSince)) {
+							array_push($toknowsResponse, $toknowLine);
+						}
+					}
 					
 					// reading and processing arriving toknows
 					$count = 0;
@@ -251,6 +259,70 @@ class SecureAPI {
 																.$existsToknow->title." "
 																.$existsToknow->description;
 										$toknow['version'] = $existsToknow->version;
+										$toknow['dayhour'] = date("Y-m-d H:i:s", time());
+										$this->bd->updateToknow(
+													$toknow['id'], 
+													$toknow['dayhour'], 
+													$toknow['version'], 
+													$toknow['title'], 
+													$toknow['description'], 
+													$toknow['done'], 
+													$toknow['tag'], 
+													$toknow['color'], 
+													$toknow['end'], 
+													$toknow['priority'], 
+													$toknow['quick'], 
+													$toknow['crypto']
+													);
+									}
+								}
+								else if (substr($toknow['id'], 0, 3) == $this->sharedUser) {
+									// reutilisation d'un vieux SHR
+									$this->log->logDebug("reutilisation d'un vieux SHR");
+									$this->bd->updateToknow(
+													$toknow['id'], 
+													$toknow['dayhour'], 
+													$toknow['version'], 
+													$toknow['title'], 
+													$toknow['description'], 
+													$toknow['done'], 
+													$toknow['tag'], 
+													$toknow['color'], 
+													$toknow['end'], 
+													$toknow['priority'], 
+													$toknow['quick'], 
+													$toknow['crypto']
+													);
+								}
+								else {
+									// cas où on tente d'importer un toknow personnel pour mettre à jour une version qui est XX programmée pour etre effacée
+									if ($existsToknow->version < $toknow['version']) {
+										// récupération d'un vieux toknow
+										$this->log->logDebug("reprise et récupération d'un vieux toknow");
+										$this->bd->updateToknow(
+													$toknow['id'], 
+													$toknow['dayhour'], 
+													$toknow['version'], 
+													$toknow['title'], 
+													$toknow['description'], 
+													$toknow['done'], 
+													$toknow['tag'], 
+													$toknow['color'], 
+													$toknow['end'], 
+													$toknow['priority'], 
+													$toknow['quick'], 
+													$toknow['crypto']
+													);
+									}
+									else {
+										// potential conflict existsToknow was updated somewhere else
+										// save existing data in a conflict comment.
+										$toknow['title'] = $toknow['title']." [CONFLICT]";
+										$toknow['description'] = $toknow['description']
+																." [CONFLICT] "
+																.$existsToknow->title." "
+																.$existsToknow->description;
+										$toknow['dayhour'] = date("Y-m-d H:i:s", time());
 										$this->bd->updateToknow(
 													$toknow['id'], 
 													$toknow['dayhour'], 
@@ -278,7 +350,7 @@ class SecureAPI {
 																." [CONFLICT] "
 																.$existsToknow->title." "
 																.$existsToknow->description;
-									$toknow['dayhour'] = $existsToknow->dayhour;
+									$toknow['dayhour'] = date("Y-m-d H:i:s", time());
 									$this->bd->updateToknow(
 													$toknow['id'], 
 													$toknow['dayhour'], 
@@ -315,7 +387,7 @@ class SecureAPI {
 						}
 					}
 					
-					
+					$this->log->logDebug("Toknows arriving:".$count." responding:".count($toknowsResponse));
 					
 					$data = array('success'=>true, 'toknows'=>$toknowsResponse);
 					$this->sendResponse(200, $data);

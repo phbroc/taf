@@ -60,7 +60,8 @@ class ToknowDetailComponent implements OnInit, OnActivate {
   bool cryptoOn = false;
   bool connected = false;
   late String user;
-  late final String? iv;
+  late String token;
+  late String email;
   late final String? key;
   String toknowUser = '';
   bool shared = false;
@@ -120,6 +121,8 @@ class ToknowDetailComponent implements OnInit, OnActivate {
           final responseU = await _inMemoryDataService.get(Uri.parse(_mockUrlUser));
           final userData = _extractData(responseU);
           user = userData['user'];
+          token = userData['token'];
+          email = userData['email'];
           if (user != config.shareUser) {
             connected = true;
             final responseK = await _inMemoryDataService.get(Uri.parse(_mockUrlKey));
@@ -183,11 +186,15 @@ class ToknowDetailComponent implements OnInit, OnActivate {
         if ((toknowUser != "SHR") && (shared)) {
           // create a new toknow for SHR user
           final tempUser = config.shareUser;
-          final responseT = await _inMemoryDataService.put(Uri.parse("$_mockUrlUser/$tempUser"));
+          final responseT = await _inMemoryDataService.put(Uri.parse("$_mockUrlUser/$tempUser"),
+              headers: _headers,
+              body: json.encode({'token': '', 'email': ''})
+          );
 
           String sharedEnd = "";
           if (toknow!.end != null) sharedEnd = toknow!.end!.toIso8601String();
           // special case, two toknows are managed at the same time, don't send message for the first one
+
           final responseN = await _inMemoryDataService.post(
               Uri.parse(_mockUrlToknow),
               headers: _headers,
@@ -205,12 +212,16 @@ class ToknowDetailComponent implements OnInit, OnActivate {
               })
           );
 
-          final responseU = await _inMemoryDataService.put(Uri.parse("$_mockUrlUser/$user"));
+          final responseU = await _inMemoryDataService.put(Uri.parse("$_mockUrlUser/$user"),
+              headers: _headers,
+              body: json.encode({'token': token, 'email': email})
+          );
 
           final url = '$_mockUrlToknow/${toknow!.id}';
           toknow!.dayhour = DateTime.now();
           toknow!.version = "DD";
           final tokDel = toknow!.toJson();
+
           final responseD = _inMemoryDataService.put(Uri.parse(url),
               headers: _headers,
               body: jsonEncode(tokDel));

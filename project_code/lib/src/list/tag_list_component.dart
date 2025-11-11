@@ -38,6 +38,7 @@ class TagListComponent implements OnInit, DoCheck {
   String nothingStr = '';
   String sharedStr = '';
   String shareUser = '';
+  String quickStr = '';
   int langId = 0;
 
   @Input()
@@ -51,8 +52,8 @@ class TagListComponent implements OnInit, DoCheck {
       if ((event.toString() == "post done") ||
           (event.toString() == "put done") ||
           (event.toString() == "local init done")) {
-        if (tag != null) {
-          _getToknows(tag!.name, page);
+        if ((tag != null) && (page != null)) {
+          _getToknows();
         }
       }
     });
@@ -64,24 +65,26 @@ class TagListComponent implements OnInit, DoCheck {
 
   dynamic _extractData(Response resp) => json.decode(resp.body)['data'];
 
-  Future<void> _getToknows(String? name, String? page) async {
+  Future<void> _getToknows() async {
     try {
       if (page != null) {
-        final responseP = await _inMemoryDataService.get(Uri.parse("$_mockUrlToknows/$name/$page"));
+        final responseP = await _inMemoryDataService.get(Uri.parse("$_mockUrlToknows/${tag!.name}/$page"));
         toknows = (_extractData(responseP) as List)
             .map((json) => Toknow.fromJson(json))
             .toList();
-        if ((toknows.length == 0) && (page == 1)) {
+        if ((toknows.isEmpty) && (page == 1)) {
           noMoreToknows = true;
+          removeTag();
         }
       }
       else {
-        final responseA = await _inMemoryDataService.get(Uri.parse("$_mockUrlToknows/$name"));
+        final responseA = await _inMemoryDataService.get(Uri.parse("$_mockUrlToknows/${tag!.name}"));
         toknows = (_extractData(responseA) as List)
             .map((json) => Toknow.fromJson(json))
             .toList();
-        if (toknows.length == 0) {
+        if (toknows.isEmpty) {
           noMoreToknows = true;
+          removeTag();
         }
       }
     } catch (e) {
@@ -97,19 +100,19 @@ class TagListComponent implements OnInit, DoCheck {
     editStr = config.edit[langId];
     nothingStr = config.nothing[langId];
     sharedStr = config.shared[langId];
+    quickStr = config.quick[langId];
     shareUser = config.shareUser;
     // problem of life cycle, when OnInit the biding with the parent component is not ready
     // print("OnInit tagList ... ${tag?.name}");
-    // if (tag != null) await _getToknows(tag?.name);
   }
 
   // beware this method is often called, to prevent from looping there is the _initialized flag !
   @override
   void ngDoCheck() {
     if (!_initialized) {
-      if (tag != null) {
+      if ((tag != null) && (page != null)) {
         _initialized = true;
-        _getToknows(tag!.name, page);
+        _getToknows();
       }
     }
   }
@@ -130,7 +133,7 @@ class TagListComponent implements OnInit, DoCheck {
     }
   }
 
-  void remove(Toknow? toknow) {
+  void removeToknow(Toknow? toknow) {
     final url = '$_mockUrlToknow/${toknow?.id}';
     toknow?.dayhour = DateTime.now();
     toknow?.version = "DD";
@@ -139,6 +142,18 @@ class TagListComponent implements OnInit, DoCheck {
       final response = _inMemoryDataService.put(Uri.parse(url),
           headers: _headers,
           body: jsonEncode(tokDel));
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  void removeTag() {
+    final url = '$_mockUrlTag/${tag!.name}';
+    final tagDel = tag!.toJson();
+    try {
+      final response = _inMemoryDataService.delete(Uri.parse(url),
+          headers: _headers,
+          body: jsonEncode(tagDel));
     } catch (e) {
       throw _handleError(e);
     }

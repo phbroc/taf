@@ -35,21 +35,18 @@ class BearerAuth {
     }
     
     private function getAuthorizationHeader() {
-        $headers = null;
+        $headers = getallheaders();
+    	$auth_header = null;
+	       
+        if (isset($headers['Authorization'])) {
+            $auth_header = trim($headers['Authorization']);
+        } else if (isset($headers['X-Authorization'])) {
+            $auth_header = trim($headers['X-Authorization']);
+        } else if (isset($headers['HTTP_AUTHORIZATION'])) {
+            $auth_header = trim($headers['HTTP_AUTHORIZATION']);
+        } 
         
-        if (isset($_SERVER['Authorization'])) {
-            $headers = trim($_SERVER["Authorization"]);
-        } else if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
-            $headers = trim($_SERVER["HTTP_AUTHORIZATION"]);
-        } elseif (function_exists('apache_request_headers')) {
-            $requestHeaders = apache_request_headers();
-            $requestHeaders = array_combine(array_map('ucwords', array_keys($requestHeaders)), array_values($requestHeaders));
-            if (isset($requestHeaders['Authorization'])) {
-                $headers = trim($requestHeaders['Authorization']);
-            }
-        }
-        
-        return $headers;
+        return $auth_header;
     }
     
     private function getBearerToken($headers) {

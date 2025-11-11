@@ -34,6 +34,7 @@ class ToknowSearchComponent implements OnInit {
   String titleStr = '';
   String editStr = '';
   String sharedStr = '';
+  String quickStr = '';
   String shareUser = '';
   int langId = 0;
   late Stream<List<Toknow>> toknows;
@@ -68,6 +69,7 @@ class ToknowSearchComponent implements OnInit {
     titleStr = config.title[langId];
     editStr = config.edit[langId];
     sharedStr = config.shared[langId];
+    quickStr = config.quick[langId];
     shareUser = config.shareUser;
     _getToknows();
   }

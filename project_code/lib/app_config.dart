@@ -3,6 +3,8 @@ class AppConfig {
   String apiUrl = 'api'; /* en PROD */
   String userUrl = 'user.php';
   String toknowUrl = 'toknow.php';
+  String authAltHeader = 'X-Authorization';
+  String authAltProcess = 'Bearer ';
   String localStName = 'myToknows';
   List<String> appTitle = ['Trucs à savoir','Things to know'];
   List<String> tagListTitle = ['Tout ce qui concerne','All about'];

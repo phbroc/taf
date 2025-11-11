@@ -28,6 +28,7 @@ class LoginComponent implements OnInit {
   final _mockUrlLang = 'api/lang';
   final _mockUrlUser = 'api/user';
   final _mockUrlKey = 'api/key';
+  final _mockUrlAll = 'api/all';
   final _headers = {'Content-Type': 'application/json'};
 
   String title = '';
@@ -228,6 +229,7 @@ class LoginComponent implements OnInit {
         Map jsonData = _extractData(responseC);
         String? token = jsonData['token'];
         String? email = jsonData['email'];
+        print("login_component connect");
         if ((email != null) && (token != null) && (token != "")) {
           user = jsonData['user'];
 
@@ -271,8 +273,11 @@ class LoginComponent implements OnInit {
       if (responseD.statusCode == 200) {
         Map jsonData = _extractData(responseD);
         bool success = jsonData['success'];
-        LocalStorageDataService.saveUser('', '', '');
-        LocalStorageDataService.saveToknows([]);
+        final responseZ = await _inMemoryDataService.delete(Uri.parse(_mockUrlAll));
+        LocalStorageDataService.resetUser();
+        LocalStorageDataService.resetToknows();
+        // bizarre il semble que cette action n'a pas fonctionné, la date de synchro n'est pas réinitialisé lors de la connexion suivante.
+        LocalStorageDataService.resetDayHourSync();
       }
     }
     user = config.shareUser;

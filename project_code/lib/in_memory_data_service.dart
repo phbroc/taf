@@ -288,7 +288,18 @@ class InMemoryDataService extends MockClient {
           data = json.encode({'data': true});
         }
         else if (parent == "tag") {
-
+          final tagDelete = Tag.fromJson(json.decode(request.body));
+          // print("debug... delete ${tagDelete.name}");
+          _tagDb.removeWhere((tag) => tag.name == tagDelete.name);
+          data = json.encode({'data': true});
+        }
+        else if (parent == "all") {
+          resetDb();
+          _user = '';
+          _email = '';
+          _key = '';
+          _token = '';
+          data = json.encode({'data': true});
         }
         break;
       default:

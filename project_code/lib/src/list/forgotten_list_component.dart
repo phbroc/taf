@@ -35,6 +35,7 @@ class ForgottenListComponent implements OnInit {
   String editStr = '';
   String nothingStr = '';
   String sharedStr = '';
+  String quickStr = '';
   String shareUser = '';
   int langId = 0;
 
@@ -54,6 +55,7 @@ class ForgottenListComponent implements OnInit {
     editStr = config.edit[langId];
     nothingStr = config.nothing[langId];
     sharedStr = config.shared[langId];
+    quickStr = config.quick[langId];
     shareUser = config.shareUser;
     _getToknows();
   }

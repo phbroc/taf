@@ -28,8 +28,11 @@
                   [class.inThePast]="isInThePast(toknow.end)">
                 {{toknow.title}}
             </span>
-            <span [hidden]="toknow.id.substring(0,3)!=shareUser">
+            <span *ngIf="toknow.id.substring(0,3)==shareUser">
                 {{sharedStr}}
+            </span>
+            <span *ngIf="toknow.quick">
+                {{quickStr}}
             </span>
             <button [hidden]="!done.checked!"
                     (click)="remove(toknow)">{{deleteStr}}</button>
