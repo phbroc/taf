@@ -1,6 +1,6 @@
 class AppConfig {
-  // String apiUrl = 'http://localhost/api'; /* en DEV */
-  String apiUrl = 'api'; /* en PROD */
+  String apiUrl = 'http://localhost/api'; /* en DEV */
+  // String apiUrl = 'api'; /* en PROD */
   String userUrl = 'user.php';
   String toknowUrl = 'toknow.php';
   String authAltHeader = 'X-Authorization';
@@ -36,12 +36,16 @@ class AppConfig {
   List<String> newPersonalPass = ['Nouveau mot de passe', 'New password'];
   List<String> newPassRepeat = ['Répéter le nouveau mot de passe', 'Repeat the new password'];
   List<String> repeatError = ['Les deux mots ne sont pas identiques.', 'The two words are not the same.'];
+  List<String> passLengthError = ['Le mot de passe doit avoir au moins 8 caractères', 'The password must have 8 characters at least'];
   List<String> passChange = ['Changement de mot de passe', 'Password change'];
   List<String> cryptography = ['Cryptographie', 'Cryptography'];
   List<String> enabled = ['activée', 'enabled'];
   List<String> keyFormatError = ['La clé ne doit pas contenir d\'espace.',
                             'The key musn\'t contains spaces.'];
   List<String> keyLengthError = ['La clé doit avoir la longueur: ', 'The key must be long: '];
+  List<String> actionWarning = ['Attention danger', 'Danger beware'];
+  List<String> keyReinitError = ['Il faut ressaisir exactement la clé initiale', 'You have to enter the initial key exactly'];
+  List<String> keyReinitSuccess = ['Les descriptions cryptées sont mises à jour', "The encrypted descriptions are updated"];
   List<String> look = ['Voir', 'Look'];
   List<String> mask = ['Masquer', 'Mask'];
   List<String> keySet = ['Activer la clé', 'Key set'];
@@ -51,6 +55,7 @@ class AppConfig {
   List<String> keyUpdate = ['Modifier la clé', 'Key update'];
   List<String> connection = ['Connexion', 'Connection'];
   List<String> disconnection = ['Déconnexion', 'Disconnection'];
+  List<String> disconnectionAll = ['Tout déconnecter', 'Disconnect all'];
   List<String> connected = ['Connecté', 'Connected'];
   List<String> disconnected = ['Déconnecté', 'Disconnected'];
   List<String> dashboardTitle = ['Tableau de bord', 'Dashboard'];
@@ -58,7 +63,9 @@ class AppConfig {
   List<String> userLink = ['Utilisateur', 'User'];
   List<String> requiredError = ['Saisie incomplète', 'Missing informations'];
   List<String> connectionError = ['Erreur de connexion', 'Connection error'];
+  List<String> connectionBlocked = ['Utilisateur bloqué', 'User blocked'];
   List<String> changedDone = ['Changement effectué', 'Change done'];
+  List<String> recoveryDone = ['Changement effectué, il faut se connecter avec le nouveau mot de passe', 'Change done, use the new password to authenticate'];
   List<String> share = ['Partager', 'Share'];
   List<String> shared = ['Partagé', 'Shared'];
   List<String> search = ['Chercher', 'Search'];
@@ -76,6 +83,12 @@ class AppConfig {
   List<String> titleRequired = ['Titre obligatoire', 'Title required'];
   List<String> synchronized = ['synchronisé le', 'synchronized on'];
   List<String> keyChange = ['Changement de clé', 'Key change'];
+  List<String> passRecovery = ['Mot de passe oublié', 'Password forgotten'];
+  List<String> email = ['Email', 'Email'];
+  List<String> recovery = ['Récupérer', 'Recovery'];
+  List<String> checkYourMailbox = ['Message de récupération envoyé', 'Recovery email sent'];
+  List<String> recoveryCode = ['Code de récupération reçu par email', 'Recovery code received by email'];
+  List<String> recoveryCodeValidation = ['Valider le changement', 'Submit the update'];
   String shareUser = 'SHR';
 
 }

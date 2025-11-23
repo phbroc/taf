@@ -14,6 +14,7 @@ import '../../local_storage_data_service.dart';
 import '../route_paths.dart';
 import '../../app_config.dart';
 import '../commons.dart';
+import '../../message_service.dart';
 
 @Component(
     selector: 'toknow-detail',
@@ -67,6 +68,7 @@ class ToknowDetailComponent implements OnInit, OnActivate {
   bool shared = false;
   bool errorForm1 = false;
   String form1Message = '';
+  bool cryptoError = false;
 
   ToknowDetailComponent(this._inMemoryDataService, this._encryptDataService, this._location, this.config);
 
@@ -136,6 +138,10 @@ class ToknowDetailComponent implements OnInit, OnActivate {
                 String description = _encryptDataService.decryptData(toknow!.description!);
                 toknow!.description = description;
               }
+              if ((toknow!.description != null)
+                  && (toknow!.description!.substring(0,12) == "CRYPTO ERROR")) {
+                cryptoError = true;
+              }
             }
             else {
               cryptoOn = false;
@@ -184,7 +190,8 @@ class ToknowDetailComponent implements OnInit, OnActivate {
         }
         // special workflow when user wants to share a personal toknow
         if ((toknowUser != "SHR") && (shared)) {
-          // create a new toknow for SHR user
+          // create a new toknow for SHR user, must pause synchro while dealing with two toknows
+          MessageService.send("synchro pause");
           final tempUser = config.shareUser;
           final responseT = await _inMemoryDataService.put(Uri.parse("$_mockUrlUser/$tempUser"),
               headers: _headers,
@@ -207,8 +214,7 @@ class ToknowDetailComponent implements OnInit, OnActivate {
                 'end': sharedEnd,
                 'priority': toknow!.priority,
                 'quick': toknow!.quick,
-                'crypto': toknow!.crypto,
-                'nomessage': 'first'
+                'crypto': toknow!.crypto
               })
           );
 
@@ -222,25 +228,14 @@ class ToknowDetailComponent implements OnInit, OnActivate {
           toknow!.version = "DD";
           final tokDel = toknow!.toJson();
 
-          final responseD = _inMemoryDataService.put(Uri.parse(url),
+          final responseD = await _inMemoryDataService.put(Uri.parse(url),
               headers: _headers,
               body: jsonEncode(tokDel));
+          MessageService.send("synchro release");
         }
         else {
           final url = '$_mockUrlToknow/${toknow!.id}';
-          // increment version
-          int? version = int.tryParse(toknow!.version);
-          if ((version != null) && (version >= 0)) {
-            if (version < 99) {
-              version++;
-              if (version < 10) {
-                toknow!.version = "0$version";
-              }
-              else {
-                toknow!.version = version.toString();
-              }
-            }
-          }
+          // don't increment version, this increment is done by the server only
           toknow!.color = color;
           toknow!.dayhour = DateTime.now();
           // si le toknow est à crypter il faut le faire maintenant

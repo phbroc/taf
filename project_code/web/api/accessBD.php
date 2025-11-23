@@ -46,6 +46,12 @@ class AccessBD {
 					if ($line['crypto'] == 0) $line['crypto'] = false;
 					else $line['crypto'] = true;
 				}
+				if (isset($line['color'])) {
+					$line['color'] = intval($line['color']);
+				}
+				if (isset($line['priority'])) {
+					$line['priority'] = intval($line['priority']);
+				}
 				return $line;
 			} catch (PDOException $e) {
 				return null;
@@ -56,12 +62,13 @@ class AccessBD {
 		}
 	}
 	
-	public function insertUser($id, $password) {
+	public function insertUser($id, $password, $email) {
 		try {
-			$sql = 'INSERT INTO user(id, password) VALUES(:id, :password) ;';
+			$sql = 'INSERT INTO '.PREFIX.'user(id, password, email) VALUES(:id, :password, :email) ;';
 			$stmt = $this->conn->prepare($sql);
 			$stmt->bindValue(':id', $id);
 			$stmt->bindValue(':password', $password);
+			$stmt->bindValue(':email', $email);
 			if ($stmt) {
 				$stmt->execute();
 				return true;
@@ -76,7 +83,7 @@ class AccessBD {
 	
 	public function selectUserId($id) {
 		try {
-			$sql = 'SELECT * FROM user WHERE id = :id ;';
+			$sql = 'SELECT * FROM '.PREFIX.'user WHERE id = :id ;';
 			$stmt = $this->conn->prepare($sql);
 			$stmt->bindValue(':id', $id);
 			if ($stmt) {
@@ -94,7 +101,7 @@ class AccessBD {
 	
 	public function updateUserPassword($id, $newPassword) {
 		try {
-			$sql = 'UPDATE user SET password = :password WHERE id = :id ;';
+			$sql = 'UPDATE '.PREFIX.'user SET password = :password, recovery = NULL, expiry = NULL WHERE id = :id ;';
 			$stmt = $this->conn->prepare($sql);
 			$stmt->bindValue(':id', $id);
 			$stmt->bindValue(':password', $newPassword);
@@ -106,13 +113,14 @@ class AccessBD {
 				return null;
 			}
 		} catch (PDOException $e) {
+			$this->log->logDebug("updateUserPassword PDOException ".$e);
 			return null;
 		}
 	}
 	
 	public function updateUserEmail($id, $email) {
 		try {
-			$sql = 'UPDATE user SET email = :email WHERE id = :id ;';
+			$sql = 'UPDATE '.PREFIX.'user SET email = :email WHERE id = :id ;';
 			$stmt = $this->conn->prepare($sql);
 			$stmt->bindValue(':id', $id);
 			$stmt->bindValue(':email', $email);
@@ -128,15 +136,16 @@ class AccessBD {
 		}
 	}
 	
-	public function selectUserPassword($password) {
+	public function updateUserErrors($id, $errors, $blocked) {
 		try {
-			$sql = 'SELECT * FROM user WHERE password = :password ;';
+			$sql = 'UPDATE '.PREFIX.'user SET errors = :errors, blocked =:blocked  WHERE id = :id ;';
 			$stmt = $this->conn->prepare($sql);
-			$stmt->bindValue(':password', $password);
+			$stmt->bindValue(':id', $id);
+			$stmt->bindValue(':errors', $errors);
+			$stmt->bindValue(':blocked', $blocked);
 			if ($stmt) {
 				$stmt->execute();
-				$obj = $stmt->fetch(PDO::FETCH_OBJ);
-				return $obj;
+				return true;
 			}
 			else {
 				return null;
@@ -146,9 +155,98 @@ class AccessBD {
 		}
 	}
 	
+	public function selecteUserRecovery($id, $recovery) {
+		try {
+			$sql = 'SELECT * FROM '.PREFIX.'user WHERE id = :id AND recovery = :recovery AND expiry > NOW();';
+			$stmt = $this->conn->prepare($sql);
+			$stmt->bindValue(':id', $id);
+			$stmt->bindValue(':recovery', $recovery);
+			if ($stmt) {
+				$stmt->execute();
+				$obj = $stmt->fetch(PDO::FETCH_OBJ);
+				return $obj;
+			}
+			else {
+				return null;
+			}
+		} catch (PDOException $e) {
+			$this->log->logDebug("updateRecovery PDOException ".$e);
+			return null;
+		}
+	}
+	
+	public function updateUserRecovery($id, $email, $recovery) {
+		try {
+			$sql = 'UPDATE '.PREFIX.'user SET recovery = :recovery, expiry =:expiry  WHERE id = :id AND email = :email ;';
+			$stmt = $this->conn->prepare($sql);
+			$stmt->bindValue(':id', $id);
+			$stmt->bindValue(':email', $email);
+			$stmt->bindValue(':recovery', $recovery);
+			$expiry = date("Y-m-d H:i:s", strtotime("+1 hour", time()));
+			$stmt->bindValue(':expiry', $expiry);
+			if ($stmt) {
+				$resultat = $stmt->execute();
+				return $resultat;
+			}
+			else {
+				return null;
+			}
+		} catch (PDOException $e) {
+			$this->log->logDebug("updateRecovery PDOException ".$e);
+			return null;
+		}
+	}
+	
+	public function selectUserPassword($id, $password) {
+		try {
+			$sql = 'SELECT * FROM '.PREFIX.'user WHERE id = :id AND password = :password ;';
+			$stmt = $this->conn->prepare($sql);
+			$stmt->bindValue(':id', $id);
+			$stmt->bindValue(':password', $password);
+			if ($stmt) {
+				$stmt->execute();
+				$obj = $stmt->fetch(PDO::FETCH_OBJ);
+				if (is_object($obj)) {
+					if (!$obj->blocked) {
+						$resultat = $this->updateUserErrors($id, 0, false);
+					}
+					return $obj;
+				}
+				else {
+					// check if user exists...
+					$u = $this->selectUserId($id);
+					if (is_object($u)) {
+						// and check if too many errors...
+						if ($u->blocked) {
+							return $u;
+						}
+						else {
+							$errors = 1 + $u->errors;
+							if ($errors >= 5) {
+								$resultat = $this->updateUserErrors($id, $errors, true);
+								return null;
+							}
+							else {
+								$resultat = $this->updateUserErrors($id, $errors, false);
+								return null;
+							}
+						}
+					}
+					else return null;
+				}
+			}
+			else {
+				return null;
+			}
+		} catch (PDOException $e) {
+			$this->log->logDebug("selectUserPassword PDOException ".$e);
+			return null;
+		}
+	}
+	
 	public function insertToken($id, $user) {
 		try {
-			$sql = 'INSERT INTO token(id, user, expiry) VALUES(:id, :user, :expiry) ;';
+			$sql = 'INSERT INTO '.PREFIX.'token(id, user, expiry) VALUES(:id, :user, :expiry) ;';
 			$stmt = $this->conn->prepare($sql);
 			$stmt->bindValue(':id', $id);
 			$stmt->bindValue(':user', $user);
@@ -162,13 +260,14 @@ class AccessBD {
 				return null;
 			}
 		} catch (PDOException $e) {
+			$this->log->logDebug("insertToken PDOException ".$e);
 			return null;
 		}
 	}
 	
 	public function deleteToken($id) {
 		try {
-			$sql = 'DELETE FROM token WHERE id=:id ;';
+			$sql = 'DELETE FROM '.PREFIX.'token WHERE id=:id ;';
 			$stmt = $this->conn->prepare($sql);
 			$stmt->bindValue(':id', $id);
 			
@@ -184,9 +283,27 @@ class AccessBD {
 		}
 	}
 	
+	public function deleteAllUserToken($user) {
+		try {
+			$sql = 'DELETE FROM '.PREFIX.'token WHERE user=:user ;';
+			$stmt = $this->conn->prepare($sql);
+			$stmt->bindValue(':user', $user);
+			
+			if ($stmt) {
+				$stmt->execute();
+				return true;
+			}
+			else {
+				return null;
+			}
+		} catch (PDOException $e) {
+			return null;
+		}
+	}
+	
 	public function selectUserToken($id) {
 		try {
-			$sql = 'SELECT user FROM token WHERE id = :id AND expiry > NOW();';
+			$sql = 'SELECT user FROM '.PREFIX.'token WHERE id = :id AND expiry > NOW();';
 			$stmt = $this->conn->prepare($sql);
 			$stmt->bindValue(':id', $id);
 			if ($stmt) {
@@ -209,8 +326,8 @@ class AccessBD {
 	
 	public function insertToknow($id, $dayhour, $version, $title, $description, $done, $tag, $color, $end, $priority, $quick, $crypto) {
 		try {
-			$sql = "INSERT INTO toknow(id, dayhour, version, title, description, done, tag, color, end, priority, quick, crypto) "
-					."VALUES(:id, :dayhour, :version, :title, :description, :done, :tag, :color, :end, :priority, :quick, :crypto); ";
+			$sql = 'INSERT INTO '.PREFIX.'toknow(id, dayhour, version, title, description, done, tag, color, end, priority, quick, crypto) '
+					.'VALUES(:id, :dayhour, :version, :title, :description, :done, :tag, :color, :end, :priority, :quick, :crypto); ';
 			$stmt = $this->conn->prepare($sql);
 			$stmt->bindValue(':id', $id);
 			$stmt->bindValue(':dayhour', $dayhour);
@@ -238,7 +355,7 @@ class AccessBD {
 	
 	public function selectToknow($id) {
 		try {
-			$sql = 'SELECT * FROM toknow WHERE id = :id ;';
+			$sql = 'SELECT * FROM '.PREFIX.'toknow WHERE id = :id ;';
 			$stmt = $this->conn->prepare($sql);
 			$stmt->bindValue(':id', $id);
 			if ($stmt) {
@@ -256,7 +373,7 @@ class AccessBD {
 	
 	public function selectUserToknowsSince($user, $dayhour) {
 		try {
-			$sql = 'SELECT * FROM toknow WHERE (id LIKE :user OR id LIKE "SHR%") AND dayhour >= :dayhour;';
+			$sql = 'SELECT * FROM '.PREFIX.'toknow WHERE (id LIKE :user OR id LIKE "SHR%") AND dayhour >= :dayhour ORDER BY dayhour DESC;';
 			$stmt = $this->conn->prepare($sql);
 			$stmt->bindValue(':user', $user."%");
 			$stmt->bindValue(':dayhour', $dayhour);
@@ -272,21 +389,44 @@ class AccessBD {
 		}
 	}
 	
+	public function selectUserToknowMaxId($user) {
+		try {
+			$sql = 'SELECT id FROM '.PREFIX.'toknow WHERE id LIKE :user ORDER BY id DESC;';
+			$stmt = $this->conn->prepare($sql);
+			$stmt->bindValue(':user', $user."%");
+			if ($stmt) {
+				$stmt->execute();
+				$obj = $stmt->fetch(PDO::FETCH_OBJ);
+				if (is_object($obj)) {
+					return $obj->id;
+				}
+				else {
+					return null;
+				}
+			}
+			else {
+				return null;
+			}
+		} catch (PDOException $e) {
+			return null;
+		}
+	}
+	
 	public function updateToknow($id, $dayhour, $version, $title, $description, $done, $tag, $color, $end, $priority, $quick, $crypto) {
 		try {
-			$sql = "UPDATE toknow SET "
-				."dayhour = :dayhour, "
-				."version=  :version, "
-				."title =  :title, "
-				."description =  :description, "
-				."done =  :done, "
-				."tag =  :tag, "
-				."color = :color, "
-				."end = :end, "
-				."priority = :priority, "
-				."quick = :quick, "
-				."crypto = :crypto "
-				."WHERE id = :id ; ";
+			$sql = 'UPDATE '.PREFIX.'toknow SET '
+				.'dayhour = :dayhour, '
+				.'version=  :version, '
+				.'title =  :title, '
+				.'description =  :description, '
+				.'done =  :done, '
+				.'tag =  :tag, '
+				.'color = :color, '
+				.'end = :end, '
+				.'priority = :priority, '
+				.'quick = :quick, '
+				.'crypto = :crypto '
+				.'WHERE id = :id ; ';
 			$stmt = $this->conn->prepare($sql);
 			$stmt->bindValue(':id', $id);
 			$stmt->bindValue(':dayhour', $dayhour);
@@ -314,7 +454,7 @@ class AccessBD {
 	
 	public function deleteToknow($id) {
 		try {
-			$sql = 'DELETE FROM toknow WHERE id = :id ;';
+			$sql = 'DELETE FROM '.PREFIX.'toknow WHERE id = :id ;';
 			$stmt = $this->conn->prepare($sql);
 			$stmt->bindValue(':id', $id);
 			if ($stmt) {

@@ -74,7 +74,15 @@ class AppComponent implements OnInit {
     });
 
     MessageService.doneController.stream.listen((event) async {
-      if ((event.toString() == "post done") || (event.toString() == "put done")) {
+      if ((event.toString() == "synchro pause")) {
+        synchroOn = true;
+      }
+      else if ((event.toString() == "synchro release")) {
+        synchroOn = false;
+        bool success = await _synchroServer();
+        print("app_component synchro done: $success");
+      }
+      else if ((event.toString() == "post done") || (event.toString() == "put done")) {
         if (initDone) _saveLocal();
         if ((connected) && (isOnLine) && (!synchroOn)) {
           bool success = await _synchroServer();
@@ -131,16 +139,7 @@ class AppComponent implements OnInit {
         tafConfigFactory().toknowUrl
     );
 
-    final responseL = await _inMemoryDataService.put(Uri.parse("$_mockUrlLang/FR"));
     int langId = 0;
-
-    title = tafConfigFactory().appTitle[langId];
-    homeLinkStr = tafConfigFactory().homeLink[langId];
-    userLinkStr = tafConfigFactory().userLink[langId];
-    onLineStr = tafConfigFactory().onLine[langId];
-    offLineStr = tafConfigFactory().offLine[langId];
-    synchronizedStr = tafConfigFactory().synchronized[langId];
-    shareUser = tafConfigFactory().shareUser;
 
     LocalStorageDataService.setup(tafConfigFactory().localStName);
 
@@ -152,6 +151,7 @@ class AppComponent implements OnInit {
         user = ul['user']!;
         String token = ul['token']!;
         String email = ul['email']!;
+        if (ul['langId'] != null) langId = int.parse(ul['langId']!);
         final responseU = await _inMemoryDataService.put(Uri.parse("$_mockUrlUser/$user"),
             headers: _headers,
             body: json.encode({'token': token, 'email': email})
@@ -176,6 +176,7 @@ class AppComponent implements OnInit {
         user = ul['user']!;
         String token = ul['token']!;
         String email = ul['email']!;
+        if (ul['langId'] != null) langId = int.parse(ul['langId']!);
         final responseU = await _inMemoryDataService.put(Uri.parse("$_mockUrlUser/$user"),
             headers: _headers,
             body: json.encode({'token': token, 'email': email})
@@ -189,6 +190,23 @@ class AppComponent implements OnInit {
         );
       }
     }
+
+    String lang = "";
+    switch (langId) {
+      case 0: lang = "FR"; break;
+      case 1: lang = "EN"; break;
+      default: lang = "FR";
+    }
+    final responseL = await _inMemoryDataService.put(Uri.parse("$_mockUrlLang/$lang"));
+
+
+    title = tafConfigFactory().appTitle[langId];
+    homeLinkStr = tafConfigFactory().homeLink[langId];
+    userLinkStr = tafConfigFactory().userLink[langId];
+    onLineStr = tafConfigFactory().onLine[langId];
+    offLineStr = tafConfigFactory().offLine[langId];
+    synchronizedStr = tafConfigFactory().synchronized[langId];
+    shareUser = tafConfigFactory().shareUser;
 
     try {
       if (connected) {
@@ -252,38 +270,48 @@ class AppComponent implements OnInit {
         final responseS = await ServerDataService.synchroToknowList(syncToknows, dayhourSync, token);
 
         if (responseS.statusCode == 200) {
-          final List<Toknow> syncToknowsAfter =  (_extractData(responseS)["toknows"] as List)
-              .map((json) => Toknow.fromJson(json))
-              .toList();
-
-          for (var toknow in syncToknowsAfter) {
-            // check for toknow to delete because of version XX
-            // print("debug toknow after ${toknow.id}");
-            if (toknow.version == 'XX') {
-              await _inMemoryDataService.delete(
-                  Uri.parse(_mockUrlToknow),
-                  headers: _headers,
-                  body: json.encode(toknow.toJson())
-              );
-            }
-            else {
-              // check if PUT or POST
-              final toknowExists = await _inMemoryDataService.get(Uri.parse("$_mockUrlToknow/${toknow.id}"));
-              if (_extractData(toknowExists) != null) {
-                await _inMemoryDataService.put(
-                    Uri.parse(_mockUrlToknow),
-                    headers: _headers,
-                    body: json.encode(toknow.toJson())
-                );
+          try {
+            final List<Toknow> syncToknowsAfter = (_extractData(
+                responseS)["toknows"] as List)
+                .map((json) => Toknow.fromJson(json))
+                .toList();
+            print("debug... reading after ${syncToknowsAfter.length} toknows");
+            for (var toknow in syncToknowsAfter) {
+              // check for toknow to delete because of version XX
+              // print("debug toknow after ${toknow.id} ${toknow.version}");
+              if (toknow.version == 'XX') {
+                final toknowToDel = await _inMemoryDataService.get(Uri.parse("$_mockUrlToknow/${toknow.id}"));
+                if (_extractData(toknowToDel) != null) {
+                  await _inMemoryDataService.delete(
+                      Uri.parse(_mockUrlToknow),
+                      headers: _headers,
+                      body: json.encode(toknow.toJson())
+                  );
+                }
               }
               else {
-                await _inMemoryDataService.post(
-                    Uri.parse(_mockUrlToknow),
-                    headers: _headers,
-                    body: json.encode(toknow.toJson())
-                );
+                // check if PUT or POST
+                final toknowExists = await _inMemoryDataService.get(Uri.parse("$_mockUrlToknow/${toknow.id}"));
+                if (_extractData(toknowExists) != null) {
+                  await _inMemoryDataService.put(
+                      Uri.parse("$_mockUrlToknow/${toknow.id}"),
+                      headers: _headers,
+                      body: json.encode(toknow.toJson())
+                  );
+                }
+                else {
+                  await _inMemoryDataService.post(
+                      Uri.parse(_mockUrlToknow),
+                      headers: _headers,
+                      body: json.encode(toknow.toJson())
+                  );
+                }
               }
             }
+            print("Enf of arriving toknows");
+          }
+          catch (e) {
+            throw _handleError(e);
           }
           _saveLocal();
           dayhourSync = DateTime.now();

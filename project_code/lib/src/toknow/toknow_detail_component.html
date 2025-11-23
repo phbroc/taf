@@ -65,7 +65,7 @@
     </div>
     <div class="formValidation">
         <button (click)="goBack()">{{backStr}}</button>
-        <button (click)="save()">{{saveStr}}</button>
+        <button (click)="save()" [disabled]="(cryptoError) || (toknow!.crypto && !cryptoOn)">{{saveStr}}</button>
     </div>
 
 

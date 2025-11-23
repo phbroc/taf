@@ -23,8 +23,11 @@
             <fieldset>
                 <legend>{{identificationStr}}</legend>
                 <div *ngIf="connected">
-                    <button (click)="disconnect()">
+                    <button (click)="disconnect(false)">
                         {{disconnectionStr}}
+                    </button>
+                    <button (click)="disconnect(true)">
+                        {{disconnectionAllStr}}
                     </button>
                     <div class="newLine">
                         <a (click)="newPassWanted=!newPassWanted" class="actionLink">{{passwordChangeStr}}</a>
@@ -32,29 +35,60 @@
                 </div>
                 <div *ngIf="!connected">
                     <label for="userInp" class="labelTop">{{userStr}}</label>
-                    <input [(ngModel)]="user" name="user" type="text" id="userInp" required>
-                    <label for="passwordInp" class="labelTop">{{passwordStr}}</label>
-                    <input [(ngModel)]="password" name="password" type="password" id="passwordInp" required>
+                    <input [(ngModel)]="user" name="user" type="text" id="userInp" class="veryshortInp" required>
+                    <div *ngIf="!passRecoveryWanted">
+                        <label for="passwordInp" class="labelTop">{{passwordStr}}</label>
+                        <input [(ngModel)]="password" name="password" [type]="passwordInpMode" id="passwordInp" class="mediumInp" required>
+                        <button (click)="inputModeToggle('passwordInp')">{{passwordInpStr}}</button>
+                    </div>
+                    <div *ngIf="passRecoveryWanted">
+                        <label for="emailInp" class="labelTop">{{emailStr}}</label>
+                        <input [(ngModel)]="email" name="email" type="text" id="emailInp" class="normalInp" required>
+                    </div>
+                    <div *ngIf="recoverySent">
+                        <p>{{checkYourMailboxStr}}</p>
+                        <label for="recoveryCodeInp" class="labelTop">{{recoveryCodeStr}}</label>
+                        <input [(ngModel)]="recoveryCode" name="recoveryCode" type="text" id="recoveryCodeInp" class="normalInp" required>
+                        <label for="newPassRecoveryInp" class="labelTop">{{newPasswordStr}}</label>
+                        <input [(ngModel)]="newPassword" name="newpassword" [type]="newPassRecoveryInpMode" id="newPassRecoveryInp" class="mediumInp" required>
+                        <button (click)="inputModeToggle('newPassRecoveryInp')">{{newPassRecoveryInpStr}}</button>
+                        <label for="newPassRecoveryRepInp" class="labelTop">{{newPassRepeatStr}}</label>
+                        <input [(ngModel)]="newPassRepeat" name="newpassrepeat" [type]="newPassRecoveryRepInpMode" id="newPassRecoveryRepInp" class="mediumInp" required>
+                        <button (click)="inputModeToggle('newPassRecoveryRepInp')">{{newPassRecoveryRepInpStr}}</button>
+                    </div>
+
                     <div class="newLine">
-                        <button *ngIf="!connected" (click)="connect()">
+                        <button *ngIf="!connected && !passRecoveryWanted" (click)="connect()">
                             {{connectionStr}}
                         </button>
+                        <button *ngIf="!connected && passRecoveryWanted && !recoverySent" (click)="passRecovery()">
+                            {{recoveryStr}}
+                        </button>
+                        <button *ngIf="recoverySent" (click)="processRecovery()">
+                            {{recoveryCodeValidationStr}}
+                        </button>
+                        <p>
+                            <a (click)="passRecoveryWanted=!passRecoveryWanted" class="actionLink">{{passRecoveryStr}}</a>
+                        </p>
                     </div>
                 </div>
                 <div *ngIf="newPassWanted">
-                    <label for="passwordRecall" class="labelTop">{{passwordStr}}</label>
-                    <input [(ngModel)]="password" name="password" type="password" id="passwordRecall" required>
+                    <label for="passwordRecallInp" class="labelTop">{{passwordStr}}</label>
+                    <input [(ngModel)]="password" name="password" [type]="passwordRecallInpMode" id="passwordRecallInp" class="mediumInp" required>
+                    <button (click)="inputModeToggle('passwordRecallInp')">{{passwordRecallInpStr}}</button>
                     <label for="newPasswordInp" class="labelTop">{{newPasswordStr}}</label>
-                    <input [(ngModel)]="newPassword" name="newpassword" type="password" id="newPasswordInp" required>
+                    <input [(ngModel)]="newPassword" name="newpassword" [type]="newPasswordInpMode" id="newPasswordInp" class="mediumInp" required>
+                    <button (click)="inputModeToggle('newPasswordInp')">{{newPasswordInpStr}}</button>
                     <label for="newPassRepInp" class="labelTop">{{newPassRepeatStr}}</label>
-                    <input [(ngModel)]="newPassRepeat" name="newpassrepeat" type="password" id="newPassRepInp" required>
+                    <input [(ngModel)]="newPassRepeat" name="newpassrepeat" [type]="newPassRepInpMode" id="newPassRepInp" class="mediumInp" required>
+                    <button (click)="inputModeToggle('newPassRepInp')">{{newPassRepInpStr}}</button>
                     <div class="newLine">
                         <button *ngIf="connected" (click)="passwordChange()">
                             {{changeStr}}
                         </button>
                     </div>
                 </div>
-                <p id="form1message" [hidden]="!errorForm1">{{form1Message}}</p>
+                <p id="form1message" [hidden]="!errorForm1 && !successForm1">{{form1Message}}</p>
             </fieldset>
         </form>
 
@@ -66,31 +100,31 @@
                 <legend *ngIf="cryptoOn">{{cryptographyStr}} {{enabledStr}}</legend>
                 <legend *ngIf="!cryptoOn">{{cryptographyStr}}</legend>
 
-                <ul class="checkListLine">
-                    <li>
-                        <input [(ngModel)]="cryptoChoice16" name="cryptoLevel" type="radio" id="crypto16" class="choice"
-                               [value]="16" (click)="changeCryptoLevel(16)">
-                        <label for="crypto16" class="choice">16</label>
-                    </li>
-                    <li>
-                        <input [(ngModel)]="cryptoChoice24" name="cryptoLevel" type="radio" id="crypto24" class="choice"
-                               [value]="24" (click)="changeCryptoLevel(24)">
-                        <label for="crypto24" class="choice">24</label>
-                    </li>
-                    <li>
-                        <input [(ngModel)]="cryptoChoice32" name="cryptoLevel" type="radio" id="crypto32" class="choice"
-                               [value]="32" (click)="changeCryptoLevel(32)">
-                        <label for="crypto32" class="choice">32</label>
-                    </li>
-                </ul>
 
+                <div *ngIf="!cryptoOn || newKeyWanted">
+                    <ul class="checkListLine">
+                        <li>
+                            <input [(ngModel)]="cryptoChoice16" name="cryptoLevel" type="radio" id="crypto16" class="choice"
+                                   [value]="16" (click)="changeCryptoLevel(16)">
+                            <label for="crypto16" class="choice">16</label>
+                        </li>
+                        <li>
+                            <input [(ngModel)]="cryptoChoice24" name="cryptoLevel" type="radio" id="crypto24" class="choice"
+                                   [value]="24" (click)="changeCryptoLevel(24)">
+                            <label for="crypto24" class="choice">24</label>
+                        </li>
+                        <li>
+                            <input [(ngModel)]="cryptoChoice32" name="cryptoLevel" type="radio" id="crypto32" class="choice"
+                                   [value]="32" (click)="changeCryptoLevel(32)">
+                            <label for="crypto32" class="choice">32</label>
+                        </li>
+                    </ul>
+                    <label for="personalKeyInp" class="labelTop">{{personalKeyStr}} {{personalKeyLength}}/{{currentKeyLength}}</label>
+                    <input [(ngModel)]="personalKey" #personalkey name="personalkey" [type]="personalKeyInpMode"
+                           (input)="keyControl(personalkey.value, 1)" id="personalKeyInp" class="mediumInp">
+                    <button (click)="inputModeToggle('personalKeyInp')">{{personalKeyInpStr}}</button>
+                </div>
 
-
-                <label for="personalKeyInp" class="labelTop">{{personalKeyStr}} {{personalKeyLength}}/{{preferedKeyLength}}</label>
-                <input [(ngModel)]="personalKey" #personalkey name="personalkey" [type]="personalKeyInpMode"
-                       (input)="keyControl(personalkey.value, 1)" id="personalKeyInp" class="mediumInp">
-                <button [hidden]="personalKeyInpMode=='text'" (click)="lookPersonalKey()">{{lookStr}}</button>
-                <button [hidden]="personalKeyInpMode=='password'" (click)="maskPersonalKey()">{{maskStr}}</button>
                 <div class="newLine">
                     <button [hidden]="cryptoOn" [disabled]="errorForm2" (click)="putCryptoOn()">{{keySetStr}}</button>
                     <button [hidden]="!cryptoOn || newKeyWanted" (click)="putCryptoOff()">{{keyUnsetStr}}</button>
@@ -100,17 +134,16 @@
                 </div>
                 <div *ngIf="newKeyWanted && cryptoOn">
                     <div class="newLine">
-                        <label for="keyUpdateInp" class="labelTop">{{keyUpdateStr}} {{keyUpdateLength}}/{{preferedKeyLength}}</label>
+                        <label for="keyUpdateInp" class="labelTop">{{actionWarningStr}}: {{keyUpdateStr}} {{keyUpdateLength}}/{{preferedKeyLength}}</label>
                         <input [(ngModel)]="keyUpdate" #keyupdate name="keyupdate" [type]="keyUpdateInpMode"
                                (input)="keyControl(keyupdate.value, 2)" id="keyUpdateInp" class="mediumInp">
-                        <button [hidden]="keyUpdateInpMode=='text'" (click)="lookKeyUpdate()">{{lookStr}}</button>
-                        <button [hidden]="keyUpdateInpMode=='password'" (click)="maskKeyUpdate()">{{maskStr}}</button>
+                        <button (click)="inputModeToggle('keyUpdateInp')">{{keyUpdateInpStr}}</button>
                         <div class="newLine">
                             <button [disabled]="errorForm2" (click)="keyChange()">{{changeStr}}</button>
                         </div>
                     </div>
                 </div>
-                <p id="form2message" [hidden]="!errorForm2">{{form2Message}}</p>
+                <p id="form2message" [hidden]="!errorForm2 && !successForm2">{{form2Message}}</p>
             </fieldset>
         </form>
     </div>

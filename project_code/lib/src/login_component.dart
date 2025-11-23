@@ -9,7 +9,9 @@ import '../in_memory_data_service.dart';
 import '../message_service.dart';
 import '../server_data_service.dart';
 import '../local_storage_data_service.dart';
+import '../encrypt_data_service.dart';
 import 'commons.dart';
+import 'toknow/toknow.dart';
 
 @Component(
     selector: 'login',
@@ -18,17 +20,21 @@ import 'commons.dart';
     directives: [coreDirectives, formDirectives],
     providers: [
       ClassProvider(AppConfig),
+      ClassProvider(EncryptDataService),
       FORM_PROVIDERS,
     ]
 )
 
 class LoginComponent implements OnInit {
   final InMemoryDataService _inMemoryDataService;
+  final EncryptDataService _encryptDataService;
   final AppConfig config;
   final _mockUrlLang = 'api/lang';
   final _mockUrlUser = 'api/user';
   final _mockUrlKey = 'api/key';
   final _mockUrlAll = 'api/all';
+  final _mockUrlCryptedToknows = 'api/toknows/crypted';
+  final _mockUrlToknow = 'api/toknow';
   final _headers = {'Content-Type': 'application/json'};
 
   String title = '';
@@ -37,13 +43,16 @@ class LoginComponent implements OnInit {
   String newPasswordStr = '';
   String newPassRepeatStr = '';
   String repeatErrorStr = '';
+  String passLengthErrorStr = '';
   String changeStr = '';
   String connectionStr = '';
   String disconnectionStr = '';
+  String disconnectionAllStr = '';
   String keyStr = '';
   String keyUpdateStr = '';
   String requiredErrorStr = '';
   String connectionErrorStr = '';
+  String connectionBlockedStr = '';
   String personalKeyStr = '';
   String lookStr = '';
   String maskStr = '';
@@ -55,7 +64,25 @@ class LoginComponent implements OnInit {
   String keyFormatErrorStr = '';
   String keyLengthErrorStr = '';
   String keyChangeStr = '';
+  String actionWarningStr = '';
+  String keyReinitErrorStr = '';
+  String keyReinitSuccessStr = '';
   String changeDoneStr = '';
+  String recoveryDoneStr = '';
+  String passRecoveryStr = '';
+  String emailStr = '';
+  String recoveryStr = '';
+  String checkYourMailboxStr = '';
+  String recoveryCodeStr = '';
+  String recoveryCodeValidationStr = '';
+  String passwordInpStr = '';
+  String newPassRecoveryInpStr = '';
+  String newPassRecoveryRepInpStr = '';
+  String passwordRecallInpStr = '';
+  String newPasswordInpStr = '';
+  String newPassRepInpStr = '';
+  String personalKeyInpStr = '';
+  String keyUpdateInpStr = '';
   String userStr = '';
   int langId = 0;
   RadioButtonState langChoiceFR = RadioButtonState(true, "0");
@@ -69,8 +96,16 @@ class LoginComponent implements OnInit {
   bool successForm1 = false;
   String form1Message = '';
   String password = '';
+  String passwordInpMode = 'password';
+  String email = '';
+  String recoveryCode = '';
+  String newPassRecoveryInpMode = 'password';
+  String newPassRecoveryRepInpMode = 'password';
   String newPassword = '';
   String newPassRepeat = '';
+  String passwordRecallInpMode = 'password';
+  String newPasswordInpMode = 'password';
+  String newPassRepInpMode = 'password';
   String personalKeyInpMode = 'password';
   String keyUpdateInpMode = 'password';
   String personalKey = '';
@@ -79,16 +114,19 @@ class LoginComponent implements OnInit {
   int personalKeyLength = 0;
   int keyUpdateLength = 0;
   int preferedKeyLength = 16;
+  int currentKeyLength = 16;
   bool errorForm2 = false;
   bool successForm2 = false;
   String form2Message = '';
   bool cryptoOn = false;
+  bool passRecoveryWanted = false;
+  bool recoverySent = false;
   String user = '';
   late InputElement userInp;
   late InputElement personalKeyInp;
   late InputElement keyUpdateInp;
 
-  LoginComponent(this._inMemoryDataService, this.config) {
+  LoginComponent(this._inMemoryDataService, this._encryptDataService, this.config) {
     MessageService.doneController.stream.listen((event) {
       if (event.toString() == "local init done") {
         _getUser();
@@ -96,20 +134,23 @@ class LoginComponent implements OnInit {
     });
   }
 
-  void langStr() {
+  void _langStr() {
     title = config.loginTitle[langId];
     passwordStr = config.personalPass[langId];
     passwordChangeStr = config.passChange[langId];
     newPasswordStr = config.newPersonalPass[langId];
     newPassRepeatStr = config.newPassRepeat[langId];
     repeatErrorStr = config.repeatError[langId];
+    passLengthErrorStr = config.passLengthError[langId];
     changeStr = config.change[langId];
     connectionStr = config.connection[langId];
     disconnectionStr = config.disconnection[langId];
+    disconnectionAllStr = config.disconnectionAll[langId];
     keyStr = config.personalKey[langId];
     keyUpdateStr = config.keyUpdate[langId];
     requiredErrorStr = config.requiredError[langId];
     connectionErrorStr = config.connectionError[langId];
+    connectionBlockedStr = config.connectionBlocked[langId];
     personalKeyStr = config.personalKey[langId];
     lookStr = config.look[langId];
     maskStr = config.mask[langId];
@@ -121,8 +162,26 @@ class LoginComponent implements OnInit {
     keyFormatErrorStr = config.keyFormatError[langId];
     keyLengthErrorStr = config.keyLengthError[langId];
     changeDoneStr = config.changedDone[langId];
+    recoveryDoneStr = config.recoveryDone[langId];
     userStr = config.user[langId];
     keyChangeStr = config.keyChange[langId];
+    actionWarningStr = config.actionWarning[langId];
+    keyReinitErrorStr = config.keyReinitError[langId];
+    keyReinitSuccessStr = config.keyReinitSuccess[langId];
+    passRecoveryStr = config.passRecovery[langId];
+    emailStr = config.email[langId];
+    recoveryStr = config.recovery[langId];
+    checkYourMailboxStr = config.checkYourMailbox[langId];
+    recoveryCodeStr = config.recoveryCode[langId];
+    recoveryCodeValidationStr = config.recoveryCodeValidation[langId];
+    passwordInpStr = lookStr;
+    newPassRecoveryInpStr = lookStr;
+    newPassRecoveryRepInpStr = lookStr;
+    passwordRecallInpStr = lookStr;
+    newPasswordInpStr = lookStr;
+    newPassRepInpStr = lookStr;
+    personalKeyInpStr = lookStr;
+    keyUpdateInpStr = lookStr;
   }
 
   dynamic _extractData(Response resp) => json.decode(resp.body)['data'];
@@ -130,7 +189,7 @@ class LoginComponent implements OnInit {
   @override
   void ngOnInit() async {
     langId = await Commons.getLang();
-    langStr();
+    _langStr();
     final responseK = await _inMemoryDataService.get(Uri.parse(_mockUrlKey));
     String? key = _extractData(responseK);
     if ((key != null) && (key != "")) {
@@ -138,7 +197,8 @@ class LoginComponent implements OnInit {
       //personalKey = key;
       cryptoOn = true;
       preferedKeyLength = key.length;
-      switch (preferedKeyLength) {
+      currentKeyLength = key.length;
+      switch (currentKeyLength) {
         case 16 :
           cryptoChoice16 = RadioButtonState(true, "16");
           break;
@@ -171,12 +231,6 @@ class LoginComponent implements OnInit {
         userInp.maxLength = 3;
       }
     }
-
-    /*
-    else {
-
-    }
-    */
   }
 
   Future<void> _getUser() async {
@@ -207,13 +261,14 @@ class LoginComponent implements OnInit {
       default: lang = "FR";
     }
     final response = await _inMemoryDataService.put(Uri.parse("$_mockUrlLang/$lang"));
-    langStr();
+    _langStr();
 
     MessageService.send("lang changed $langId");
   }
 
   void changeCryptoLevel(int l) {
     preferedKeyLength = l;
+    if (!cryptoOn) currentKeyLength = l;
   }
 
 
@@ -221,10 +276,8 @@ class LoginComponent implements OnInit {
     password = password.trim();
     if (password != '') {
       var bytes = utf8.encode(password);
-      var digest = sha256.convert(bytes);
-      // print("debug... connect digest $digest");
+      var digest = sha512.convert(bytes);
       final responseC = await ServerDataService.connect(user, digest.toString());
-      //print("debug connect ${responseC.statusCode}");
       if (responseC.statusCode == 200) {
         Map jsonData = _extractData(responseC);
         String? token = jsonData['token'];
@@ -238,7 +291,7 @@ class LoginComponent implements OnInit {
               headers: _headers,
               body: json.encode({'token': token, 'email': email})
           );
-          LocalStorageDataService.saveUser(user, token, email);
+          LocalStorageDataService.saveUser(user, token, email, langId);
           connected = true;
           errorForm1 = false;
           form1Message = '';
@@ -252,6 +305,11 @@ class LoginComponent implements OnInit {
           form1Message = connectionErrorStr;
         }
       }
+      else if (responseC.statusCode == 403) {
+        connected = false;
+        errorForm1 = true;
+        form1Message = connectionBlockedStr;
+      }
       else {
         connected = false;
         errorForm1 = true;
@@ -264,12 +322,62 @@ class LoginComponent implements OnInit {
     }
   }
 
-  Future<void> disconnect() async {
+  Future<void> passRecovery() async {
+    email = email.trim();
+    if (email != '') {
+      final responseR = await ServerDataService.passRecoveryWanted(user, email);
+      if (responseR.statusCode == 200) {
+        recoverySent = true;
+      }
+    }
+  }
+
+  Future<void> processRecovery() async {
+    recoveryCode = recoveryCode.trim();
+    newPassword = newPassword.trim();
+    newPassRepeat = newPassRepeat.trim();
+    if ((newPassword != '') && (newPassword != newPassRepeat)) {
+      errorForm1 = true;
+      form1Message = repeatErrorStr;
+    }
+    else if (newPassword.length < 8) {
+      errorForm1 = true;
+      form1Message = passLengthErrorStr;
+    }
+    else if ((newPassword != '') && (recoveryCode != '')) {
+      var bytesN = utf8.encode(newPassword);
+      var digestN = sha512.convert(bytesN);
+      final responseP = await ServerDataService.recoveryPassword(user, recoveryCode, digestN.toString());
+      if (responseP.statusCode == 200) {
+        Map jsonData = _extractData(responseP);
+        bool success = jsonData['success'];
+        if (success) {
+          successForm1 = true;
+          form1Message = recoveryDoneStr;
+          newPassword = '';
+          newPassRepeat = '';
+          recoveryCode = '';
+          passRecoveryWanted = false;
+          recoverySent = false;
+        }
+      }
+      else {
+        errorForm1 = true;
+        form1Message = connectionErrorStr;
+      }
+    }
+    else {
+      errorForm1 = true;
+      form1Message = requiredErrorStr;
+    }
+  }
+
+  Future<void> disconnect(bool all) async {
     final responseU = await _inMemoryDataService.get(Uri.parse(_mockUrlUser));
     final userData = _extractData(responseU);
     String? token = userData['token'];
     if ((token != null) && (token != '')) {
-      final responseD = await ServerDataService.disconnect(user, token);
+      final responseD = await ServerDataService.disconnect(user, token, all);
       if (responseD.statusCode == 200) {
         Map jsonData = _extractData(responseD);
         bool success = jsonData['success'];
@@ -302,11 +410,15 @@ class LoginComponent implements OnInit {
       errorForm1 = true;
       form1Message = repeatErrorStr;
     }
+    else if (newPassword.length < 8) {
+      errorForm1 = true;
+      form1Message = passLengthErrorStr;
+    }
     else if ((password != '') && (newPassword != '')) {
       var bytesP = utf8.encode(password);
-      var digestP = sha256.convert(bytesP);
+      var digestP = sha512.convert(bytesP);
       var bytesN = utf8.encode(newPassword);
-      var digestN = sha256.convert(bytesN);
+      var digestN = sha512.convert(bytesN);
 
       final responseU = await _inMemoryDataService.get(Uri.parse(_mockUrlUser));
       final userData = _extractData(responseU);
@@ -328,6 +440,11 @@ class LoginComponent implements OnInit {
             form1Message = connectionErrorStr;
           }
         }
+        else if (responseP.statusCode == 403) {
+          connected = false;
+          errorForm1 = true;
+          form1Message = connectionBlockedStr;
+        }
         else {
           errorForm1 = true;
           form1Message = connectionErrorStr;
@@ -340,20 +457,89 @@ class LoginComponent implements OnInit {
     }
   }
 
-  void lookPersonalKey() {
-    personalKeyInpMode = 'text';
-  }
-
-  void maskPersonalKey() {
-    personalKeyInpMode = 'password';
-  }
-
-  void lookKeyUpdate() {
-    keyUpdateInpMode = 'text';
-  }
-
-  void maskKeyUpdate() {
-    keyUpdateInpMode = 'password';
+  void inputModeToggle(String inputId) {
+    switch (inputId) {
+      case 'passwordInp' :
+        if (passwordInpMode == 'password') {
+        passwordInpMode = 'text';
+        passwordInpStr = maskStr;
+        }
+        else {
+          passwordInpMode = 'password';
+          passwordInpStr = lookStr;
+        }
+        break;
+      case 'newPassRecoveryInp' :
+        if (newPassRecoveryInpMode == 'password') {
+          newPassRecoveryInpMode = 'text';
+          newPassRecoveryInpStr = maskStr;
+        }
+        else {
+          newPassRecoveryInpMode = 'password';
+          newPassRecoveryInpStr = lookStr;
+        }
+        break;
+      case 'newPassRecoveryRepInp' :
+        if (newPassRecoveryRepInpMode == 'password') {
+          newPassRecoveryRepInpMode = 'text';
+          newPassRecoveryRepInpStr = maskStr;
+        }
+        else {
+          newPassRecoveryRepInpMode = 'password';
+          newPassRecoveryRepInpStr = lookStr;
+        }
+        break;
+      case 'passwordRecallInp' :
+        if (passwordRecallInpMode == 'password') {
+          passwordRecallInpMode = 'text';
+          passwordRecallInpStr = maskStr;
+        }
+        else {
+          passwordRecallInpMode = 'password';
+          passwordRecallInpStr = lookStr;
+        }
+        break;
+      case 'newPasswordInp' :
+        if (newPasswordInpMode == 'password') {
+          newPasswordInpMode = 'text';
+          newPasswordInpStr = maskStr;
+        }
+        else {
+          newPasswordInpMode = 'password';
+          newPasswordInpStr = lookStr;
+        }
+        break;
+      case 'newPassRepInp' :
+        if (newPassRepInpMode == 'password') {
+          newPassRepInpMode = 'text';
+          newPassRepInpStr = maskStr;
+        }
+        else {
+          newPassRepInpMode = 'password';
+          newPassRepInpStr = lookStr;
+        }
+        break;
+      case 'personalKeyInp' :
+        if (personalKeyInpMode == 'password') {
+          personalKeyInpMode = 'text';
+          personalKeyInpStr = maskStr;
+        }
+        else {
+          personalKeyInpMode = 'password';
+          personalKeyInpStr = lookStr;
+        }
+        break;
+      case 'keyUpdateInp' :
+        if (keyUpdateInpMode == 'password') {
+          keyUpdateInpMode = 'text';
+          keyUpdateInpStr = maskStr;
+        }
+        else {
+          keyUpdateInpMode = 'password';
+          keyUpdateInpStr = lookStr;
+        }
+        break;
+    }
   }
 
   void keyControl(String? pk, int num) {
@@ -361,7 +547,11 @@ class LoginComponent implements OnInit {
       if (num == 1) {
         personalKeyInp = querySelector("#personalKeyInp") as InputElement;
         if (personalKeyInp != null) {
-          personalKeyInp.maxLength = preferedKeyLength;
+          if (cryptoOn) {
+            personalKeyInp.maxLength = currentKeyLength;
+          } else {
+            personalKeyInp.maxLength = preferedKeyLength;
+          }
         }
         personalKeyLength = pk.length;
       }
@@ -382,7 +572,11 @@ class LoginComponent implements OnInit {
           form2Message = keyFormatErrorStr;
         }
         else {
-          if (pk.length != preferedKeyLength) {
+          if ((num == 1) && (pk.length != currentKeyLength)) {
+            errorForm2 = true;
+            form2Message = keyLengthErrorStr + currentKeyLength.toString();
+          }
+          else if ((num == 2) && (pk.length != preferedKeyLength)) {
             errorForm2 = true;
             form2Message = keyLengthErrorStr + preferedKeyLength.toString();
           }
@@ -424,11 +618,48 @@ class LoginComponent implements OnInit {
   void keyChange() async {
     personalKey = personalKey.trim();
     keyUpdate = keyUpdate.trim();
-    if ((personalKey != '') && (keyUpdate != '')) {
+    final responseK = await _inMemoryDataService.get(Uri.parse(_mockUrlKey));
+    String? key = _extractData(responseK);
+    if ((key == null) || (key != personalKey) || (!cryptoOn)) {
+      errorForm2 = true;
+      form2Message = keyReinitErrorStr;
+    }
+    else if ((personalKey != '') && (keyUpdate != '')) {
+      MessageService.send("synchro pause");
+      _encryptDataService.init(key);
+      _encryptDataService.initNew(keyUpdate);
+      String urlToknow = "";
+      final responseCryptedToknows = await _inMemoryDataService.get(Uri.parse("$_mockUrlCryptedToknows"));
+      final List<Toknow> cryptedToknows = (_extractData(responseCryptedToknows) as List)
+          .map((json) => Toknow.fromJson(json))
+          .toList();
+      final DateTime now = DateTime.now();
+      int updatedCount = 0;
+      for (var toknow in cryptedToknows) {
+        toknow.dayhour = now;
+        // decrypt and encrypt
+        if ((toknow.description != null) && (toknow.description != '')) {
+          String updatedDescription = _encryptDataService.reEncryptData(toknow.description!);
+          if (updatedDescription.substring(0,12) != "CRYPTO ERROR") {
+            toknow.description = updatedDescription;
+            await _inMemoryDataService.put(
+                Uri.parse("$_mockUrlToknow/${toknow.id}"),
+                headers: _headers,
+                body: json.encode(toknow.toJson())
+            );
+            updatedCount++;
+          }
+        }
+        // end of for lopp
+      }
+      final responseK = await _inMemoryDataService.put(Uri.parse("$_mockUrlKey/$keyUpdate"));
+      MessageService.send("synchro release");
       personalKey = '';
       keyUpdate = '';
       errorForm2 = false;
-      form2Message = '';
+      successForm2 = true;
+      form2Message = '$keyReinitSuccessStr : $updatedCount / ${cryptedToknows.length}';
+      newKeyWanted = false;
     }
     else {
       errorForm2 = true;

@@ -159,6 +159,10 @@ class InMemoryDataService extends MockClient {
 
             data = json.encode({'data': tSearch});
           }
+          else if (child == "crypted") {
+            final tSearch = _toknowDb.where((toknow) => (toknow.crypto)).toList();
+            data = json.encode({'data': tSearch});
+          }
           else {
             String prefix = request.url.queryParameters['title'] ?? '';
             final regExp = RegExp(prefix, caseSensitive: false);
@@ -217,11 +221,7 @@ class InMemoryDataService extends MockClient {
           _toknowDb.insert(0,newToknow);
           updateTagDb(newToknow.tag);
           data = json.encode({'data': newToknow.toJson()});
-          // special, in some cases, there is no message ton send immediatly
-          String? nomessage = json.decode(request.body)['nomessage'];
-          if (nomessage == null) {
-            MessageService.send("post done");
-          }
+          MessageService.send("post done");
         }
         break;
       case 'PUT':

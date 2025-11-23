@@ -3,14 +3,15 @@ require("accessBD.php");
 
 $debug = "";
 
-if (!empty($_POST['id']) && !empty($_POST['password'])) {
+if (!empty($_POST['id']) && !empty($_POST['password']) && !empty($_POST['email'])) {
 	$debug .= "user creation... ";
 	$id = trim($_POST['id']);
-	$password = trim($_POST['password']);
+	$password = hash("sha512", trim($_POST['password']));
+	$email = trim($_POST['email']);
 	if (preg_match("/[A-Z]{3}/", $id)) {
 		if (strlen($id) == 3) {
 			$bd = new AccessBD();
-			$resultat = $bd->insertUser($id, $password);
+			$resultat = $bd->insertUser($id, $password, $email);
 			if ($resultat) {
 				$user = $bd->selectUserId($id);
 				if ($user) {
@@ -48,7 +49,8 @@ else {
     	<p>Add new user.</p>
       <form method="post">
         <p><b>id</b>: <input type="text" size="3" name="id" maxlength="3" required></p>
-        <p><b>password</b>: <input type="text" size="100" name="password" maxlength="255" required></p>
+		<p><b>email</b>: <input type="text" size="50" name="email" maxlength="128" required></p>
+        <p><b>password</b>: <input type="text" size="50" name="password" maxlength="32" required></p>
         <p><input type="submit"></p>
       </form>
       <hr/>

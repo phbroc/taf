@@ -41,8 +41,8 @@ class LocalStorageDataService {
     localStorage['tk_$localName'] = jsonData;
   }
 
-  static void saveUser(String u, String t, String e) {
-    var jsonData = json.encode({'user': u, 'token': t, 'email': e});
+  static void saveUser(String u, String t, String e, int l) {
+    var jsonData = json.encode({'user': u, 'token': t, 'email': e, 'langId': l.toString()});
     localStorage['us_$localName'] = jsonData;
   }
 
@@ -57,14 +57,16 @@ class LocalStorageDataService {
     if (jsonData != null) {
       final userData = <String, String?>{'user': jsonDecode(jsonData)['user'],
         'token': jsonDecode(jsonData)['token'],
-        'email': jsonDecode(jsonData)['email']
+        'email': jsonDecode(jsonData)['email'],
+        'langId': jsonDecode(jsonData)['langId']
       };
       return Map.fromEntries(userData.entries);
     }
     else {
       return {'user': null,
         'token': null,
-        'email': null
+        'email': null,
+        'langId': null
       };
     }
   }

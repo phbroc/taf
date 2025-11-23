@@ -62,7 +62,7 @@ class ServerDataService {
     }
   }
 
-  static Future<Response> disconnect(String user, String token) async {
+  static Future<Response> disconnect(String user, String token, bool all) async {
     try {
       final responseD = await _http.post(
           Uri.parse(_userUrl),
@@ -72,9 +72,51 @@ class ServerDataService {
             _authAltHeader: '${_authAltProcess}$token'
           },
           body: jsonEncode({
-            'user': user
+            'user': user,
+            'all': all
           }));
       return responseD;
+    }
+    catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  static Future<Response> passRecoveryWanted(String user, String email) async {
+    try {
+      final responseR = await _http.post(
+          Uri.parse(_userUrl),
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': 'Bearer Null',
+            _authAltHeader: '${_authAltProcess}Null',
+          },
+          body: jsonEncode({
+            'user': user,
+            'email': email
+          }));
+      return responseR;
+    }
+    catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  static Future<Response> recoveryPassword(String user, String recoveryCode, String newPassword) async {
+    try {
+      final responseR = await _http.post(
+          Uri.parse(_userUrl),
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': 'Bearer Null',
+            _authAltHeader: '${_authAltProcess}Null',
+          },
+          body: jsonEncode({
+            'user': user,
+            'recoveryCode': recoveryCode,
+            'newPassword': newPassword
+          }));
+      return responseR;
     }
     catch (e) {
       throw _handleError(e);

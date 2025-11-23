@@ -7,13 +7,14 @@ $passdb = '';
 
 $debug = "";
 
-if (!empty($_POST['hostdb']) && !empty($_POST['namedb']) && !empty($_POST['userdb'])) {
+if (!empty($_POST['hostdb']) && !empty($_POST['namedb']) && !empty($_POST['userdb']) && !empty($_POST['prefixdb'])) {
 
 	
 	$hostdb = $_POST['hostdb'];
 	$namedb = $_POST['namedb'];
 	$userdb = $_POST['userdb'];
 	$passdb = $_POST['passdb'];
+	$prefixdb = $_POST['prefixdb']."_";
 	
 	try {
 		$conn = new PDO("mysql:host=".$hostdb."; dbname=".$namedb, $userdb, $passdb);
@@ -36,36 +37,41 @@ if (!empty($_POST['hostdb']) && !empty($_POST['namedb']) && !empty($_POST['userd
 		."define ('NAME',\"".$namedb."\");\n"
 		."define ('USER',\"".$userdb."\");\n"
 		."define ('PASS',\"".$passdb."\");\n"
+		."define ('PREFIX',\"".$prefixdb."\");\n"
 		."?>");
 		fclose ($monfichier);
 		
-		$sqlwd = "DROP TABLE IF EXISTS toknow";
+		$sqlwd = "DROP TABLE IF EXISTS ".$prefixdb."toknow";
 		$conn->exec($sqlwd);
 		
-		$sqltd = "DROP TABLE IF EXISTS token";
+		$sqltd = "DROP TABLE IF EXISTS ".$prefixdb."token";
 		$conn->exec($sqltd);
 		
-		$sqlud = "DROP TABLE IF EXISTS user";
+		$sqlud = "DROP TABLE IF EXISTS ".$prefixdb."user";
 		$conn->exec($sqlud);
 		
-		$sqluc = "CREATE TABLE user ("
+		$sqluc = "CREATE TABLE ".$prefixdb."user ("
 			."id CHAR(3), "
-			."password CHAR(255), "
+			."password TEXT, "
 			."email CHAR(128), "
+			."recovery CHAR(128) ,"
+			."expiry DATETIME, "
+			."errors TINYINT NOT NULL DEFAULT 0, "
+			."blocked BOOLEAN NOT NULL DEFAULT 0, "
 			."PRIMARY KEY(id)) "
 			."ENGINE=InnoDB;";
 		$conn->exec($sqluc);
 		
-		$sqltc = "CREATE TABLE token ("
+		$sqltc = "CREATE TABLE ".$prefixdb."token ("
 			."id CHAR(255), "
 			."user CHAR(3), "
 			."expiry DATETIME, "
 			."PRIMARY KEY (id), "
-			."FOREIGN KEY (user) REFERENCES user(id) ) "
+			."FOREIGN KEY (user) REFERENCES ".$prefixdb."user(id) ) "
 			."ENGINE=InnoDB;";
 		$conn->exec($sqltc);
 		
-		$sqlwc = "CREATE TABLE toknow ("
+		$sqlwc = "CREATE TABLE ".$prefixdb."toknow ("
 			."id CHAR(10), "
 			."dayhour DATETIME, "
 			."version CHAR(2), "
@@ -106,6 +112,7 @@ else {
         <p><b>base</b>: <input type="text" size="20" name="namedb" required></p>
         <p><b>utilisateur</b>: <input type="text" size="20" name="userdb" required></p>
         <p><b>passe</b>: <input type="password" size="20" name="passdb"></p>
+        <p><b>prefix</b>: <input type="text" size="20" name="prefixdb" maxlength="3"></p>
         <p><input type="submit"></p>
       </form>
       <hr/>

@@ -25,10 +25,12 @@ class SecureAPI {
 		$this->log = new Log('logs',Log::DEBUG);
 		$this->bd = new AccessBD();
 		$this->sharedUser = 'SHR';
+		$this->noreplyEmail = 'no-reply@example.com';
     }
     
     private function setSecurityHeaders() {
         header('Content-Type: application/json');
+        // en DEV     
 	header('Access-Control-Allow-Origin: *');
         header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
         header('Access-Control-Allow-Headers: *');
@@ -53,6 +55,70 @@ class SecureAPI {
 			$randomString .= $characters[rand(0, $charactersLength - 1)];
 		}
 		return $randomString;
+	}
+	
+	private function incrementVersion($v) {
+		$retStr = "";
+		$version = -1;
+		if (($v != "XX") && ($v != "DD") && ($v != "")) {
+			$version = intval($v);
+		}
+		if ($version >= 0) {
+            if ($version < 99) {
+              $version++;
+              if ($version > 9) {
+                $retStr = strval($version);
+              }
+              else {
+				$retStr = "0".strval($version);
+              }
+            }
+			else {
+				$retStr = "99";
+			}
+        }
+		else {
+			$retSrr = $v;
+		}
+		return $retStr;
+	}
+	
+	private function incrementNumber($n) {
+		$retStr = "";
+		$number = -1;
+		if ($v != "") {
+			$number = intval($n);
+		}
+		if ($number >= 0) {
+            if ($number < 999999) {
+				$number++;
+				if ($number > 99999) {
+					$retStr = strval($number);
+				}
+				else if ($number > 9999) {
+					$retStr = "0".strval($number);
+				}
+				else if ($number > 999) {
+					$retStr = "00".strval($number);
+				}
+				else if ($number > 99) {
+					$retStr = "000".strval($number);
+				}
+				else if ($number > 9) {
+					$retStr = "0000".strval($number);
+				}
+				else {
+					$retStr = "00000".strval($number);
+				}
+            }
+			else {
+				$retStr = "999999";
+			}
+        }
+		else {
+			$retSrr = $v;
+		}
+		return $retStr;
 	}
 	
 	private function getJsonInput() {
@@ -108,10 +174,16 @@ class SecureAPI {
                 //$this->log->logDebug("POST user... ".$input['user']);
                 
                 if ((isset($input['user'])) && (isset($input['password']))) {
+                	// $this->log->logDebug("POST user... ".$input['user']);
 					// check if password is correct
-					$u = $this->bd->selectUserPassword($input['password']);
+					$u = $this->bd->selectUserPassword($input['user'], $input['password']);
 					if (is_object($u)) {
-						if ((isset($input['newPassword'])) && ($input['newPassword'] != "") && ($u->id == $this->user)) {
+						if ($u->blocked) {
+							$this->user = null;
+							$data = array('user' => $u->id, 'token' => null, 'success'=>false, 'blocked'=>true);
+							$this->sendResponse(403, $data);
+						}
+						else if ((isset($input['newPassword'])) && ($input['newPassword'] != "") && ($u->id == $this->user)) {
 							$resultat = $this->bd->updateUserPassword($this->user, $input['newPassword']);
 							if ($resultat) {
 								$data = array('success'=>true);
@@ -134,7 +206,7 @@ class SecureAPI {
 					else {
 						$this->user = null;
 						$data = array('user' => null, 'token' => null, 'success'=>false);
-						$this->sendResponse(200, $data);
+						$this->sendResponse(401, $data);
 					}
 				}
 				else if ((isset($input['email'])) && (isset($input['user']))) {
@@ -150,16 +222,66 @@ class SecureAPI {
 						}
 					}
 					else {
+						// start process for recovery password...
+						$this->log->logDebug("start process for recovery password...");
+						$recovery = $this->generateRandomString(12);
+						$resultat = $this->bd->updateUserRecovery($input['user'], $input['email'], $recovery);
+						if ($resultat) {
+							// send a mail with recovery code
+							$message = "You asked for a new password as user ".$input['user'].". To proceed in the application you have to enter this code: ".$recovery;
+							$headers = "From: ".$this->noreplyEmail;
+							//$sended = mail($input['email'], "Forgotten password", $message, $headers);
+							$sended = true;
+							$data = array('success'=>$sended);
+							$this->sendResponse(200, $data);
+						}
+						else {
+							$data = array('success'=>false);
+							$this->sendResponse(200, $data);
+						}
+					}
+				}
+				else if ((isset($input['recoveryCode'])) && (isset($input['user'])) && (isset($input['newPassword']))) {
+					// finish process for recovery password
+					$this->log->logDebug("finish process for recovery password...");
+					$u = $this->bd->selecteUserRecovery($input['user'], $input['recoveryCode']);
+					if (is_object($u)) {
+						$resultat = $this->bd->updateUserPassword($input['user'], $input['newPassword']);
+						if ($resultat) {
+							$data = array('success'=>true);
+							$this->sendResponse(200, $data);
+						}
+						else {
+							$data = array('success'=>false);
+							$this->sendResponse(200, $data);
+						}
+					}
+					else {
 						$data = array('success'=>false);
-						$this->sendResponse(200, $data);
+						$this->sendResponse(401, $data);
 					}
 				}
 				else if ((!isset($input['password'])) && (isset($input['user']))) {
 					// delete the token user
 					$t = $this->auth->readToken();
-					if ($t != null) $resultat = $this->bd->deleteToken($t);
-					$data = array('success'=>true);
-					$this->sendResponse(200, $data);
+					if (($t != null) && ($this->user == $input['user'])) {
+						if ((isset($input['all'])) && ($input['all'] == true)) {
+							$resultat = $this->bd->deleteAllUserToken($this->user);
+							$data = array('success'=>true);
+							$this->user = null;
+							$this->sendResponse(200, $data);
+						}
+						else {
+							$resultat = $this->bd->deleteToken($t);
+							$data = array('success'=>true);
+							$this->user = null;
+							$this->sendResponse(200, $data);
+						}
+					}
+					else {
+						$data = array('success'=>false);
+						$this->sendResponse(401, $data);
+					}
 				}
 				else if ((!isset($input['password'])) && (!isset($input['user']))) {
 					$this->sendResponse(400, ['error' => 'password required']);
@@ -207,7 +329,7 @@ class SecureAPI {
 						$existsToknow = $this->bd->selectToknow($toknow['id']);
 						if (is_object($existsToknow)) {
 							// complex case, first check dayhour to know wich of both is the newest
-							$this->log->logDebug("dayhour ".$existsToknow->dayhour." ".$toknow['dayhour']);
+							$this->log->logDebug("dayhour exists:".$existsToknow->dayhour." arriving:".$toknow['dayhour']);
 							if ($existsToknow->dayhour < $toknow['dayhour']) {
 								// ckeck for a new delete process
 								if ($toknow['version'] == "DD") {
@@ -230,35 +352,14 @@ class SecureAPI {
 													$toknow['quick'], 
 													$toknow['crypto']
 													);
+									array_push($toknowsResponse, $toknow);
 								}
 								else if ($existsToknow->version != "XX") {
-									if ($existsToknow->version < $toknow['version']) {
+									if ($existsToknow->version <= $toknow['version']) {
 										// normal situation
-										$this->log->logDebug("normal update");
-										$this->bd->updateToknow(
-													$toknow['id'], 
-													$toknow['dayhour'], 
-													$toknow['version'], 
-													$toknow['title'], 
-													$toknow['description'], 
-													$toknow['done'], 
-													$toknow['tag'], 
-													$toknow['color'], 
-													$toknow['end'], 
-													$toknow['priority'], 
-													$toknow['quick'], 
-													$toknow['crypto']
-													);
-									}
-									else {
-										// potential conflict existsToknow was updated somewhere else
-										// save existing data in a conflict comment.
-										$toknow['title'] = $toknow['title']." [CONFLICT]";
-										$toknow['description'] = $toknow['description']
-																." [CONFLICT] "
-																.$existsToknow->title." "
-																.$existsToknow->description;
-										$toknow['version'] = $existsToknow->version;
+										// $this->log->logDebug("normal update");
+										// increment version
+										$toknow['version'] = $this->incrementVersion($toknow['version']);
 										$toknow['dayhour'] = date("Y-m-d H:i:s", time());
 										$this->bd->updateToknow(
 													$toknow['id'], 
@@ -274,82 +375,68 @@ class SecureAPI {
 													$toknow['quick'], 
 													$toknow['crypto']
 													);
+										array_push($toknowsResponse, $toknow);
+									}
+									else {
+										// if arriving toknow version == 00 it's a totaly new toknow, make it new instead of creating a conflict
+										// find user share or user max toknow id
+										if ($toknow['version'] == "00")
+										{
+											$user = substr($toknow['id'], 0, 3);
+											$maxToknow = $this->bd->selectUserToknowMaxId($user);
+											$maxNumber = $this->incrementNumber(substr($toknow['id'], 3, 6));
+											$toknow['id'] = $user.$maxNumber;
+											$toknow['version'] = "01";
+											$toknow['dayhour'] = date("Y-m-d H:i:s", time());
+											$this->bd->insertToknow(
+													$toknow['id'], 
+													$toknow['dayhour'], 
+													$toknow['version'], 
+													$toknow['title'], 
+													$toknow['description'], 
+													$toknow['done'], 
+													$toknow['tag'], 
+													$toknow['color'], 
+													$toknow['end'], 
+													$toknow['priority'], 
+													$toknow['quick'], 
+													$toknow['crypto']
+													);
+											array_push($toknowsResponse, $toknow);
+										}
+										// else if arriving toknow is not totaly new, because its version > 00 ...
+										// potential conflict existsToknow was updated somewhere else
+										// save existing data in a conflict comment.
+										else {
+											$toknow['title'] = $toknow['title']." [CONFLICT]";
+											$toknow['description'] = $toknow['description']
+																." [CONFLICT] "
+																.$existsToknow->title." "
+																.$existsToknow->description;
+											$toknow['version'] = $this->incrementVersion($existsToknow->version);
+											$toknow['dayhour'] = date("Y-m-d H:i:s", time());
+											$this->bd->updateToknow(
+													$toknow['id'], 
+													$toknow['dayhour'], 
+													$toknow['version'], 
+													$toknow['title'], 
+													$toknow['description'], 
+													$toknow['done'], 
+													$toknow['tag'], 
+													$toknow['color'], 
+													$toknow['end'], 
+													$toknow['priority'], 
+													$toknow['quick'], 
+													$toknow['crypto']
+													);
+											array_push($toknowsResponse, $toknow);
+										}
 									}
 								}
 								else if (substr($toknow['id'], 0, 3) == $this->sharedUser) {
 									// reutilisation d'un vieux SHR
 									$this->log->logDebug("reutilisation d'un vieux SHR");
-									$this->bd->updateToknow(
-													$toknow['id'], 
-													$toknow['dayhour'], 
-													$toknow['version'], 
-													$toknow['title'], 
-													$toknow['description'], 
-													$toknow['done'], 
-													$toknow['tag'], 
-													$toknow['color'], 
-													$toknow['end'], 
-													$toknow['priority'], 
-													$toknow['quick'], 
-													$toknow['crypto']
-													);
-								}
-								else {
-									// cas où on tente d'importer un toknow personnel pour mettre à jour une version qui est XX programmée pour etre effacée
-									if ($existsToknow->version < $toknow['version']) {
-										// récupération d'un vieux toknow
-										$this->log->logDebug("reprise et récupération d'un vieux toknow");
-										$this->bd->updateToknow(
-													$toknow['id'], 
-													$toknow['dayhour'], 
-													$toknow['version'], 
-													$toknow['title'], 
-													$toknow['description'], 
-													$toknow['done'], 
-													$toknow['tag'], 
-													$toknow['color'], 
-													$toknow['end'], 
-													$toknow['priority'], 
-													$toknow['quick'], 
-													$toknow['crypto']
-													);
-									}
-									else {
-										// potential conflict existsToknow was updated somewhere else
-										// save existing data in a conflict comment.
-										$toknow['title'] = $toknow['title']." [CONFLICT]";
-										$toknow['description'] = $toknow['description']
-																." [CONFLICT] "
-																.$existsToknow->title." "
-																.$existsToknow->description;
-										$toknow['dayhour'] = date("Y-m-d H:i:s", time());
-										$this->bd->updateToknow(
-													$toknow['id'], 
-													$toknow['dayhour'], 
-													$toknow['version'], 
-													$toknow['title'], 
-													$toknow['description'], 
-													$toknow['done'], 
-													$toknow['tag'], 
-													$toknow['color'], 
-													$toknow['end'], 
-													$toknow['priority'], 
-													$toknow['quick'], 
-													$toknow['crypto']
-													);
-									}
-								}
-							}
-							else {
-								// nothing to do, because tne newest is already in database
-								// but may be the incoming toknow has highest version number ?
-								// then it can be a conflict
-								if ($existsToknow->version < $toknow['version']) {
-									$toknow['title'] = $toknow['title']." [CONFLICT]".
-									$toknow['description'] = $toknow['description']
-																." [CONFLICT] "
-																.$existsToknow->title." "
-																.$existsToknow->description;
+									$toknow['version'] = $this->incrementVersion($toknow['version']);
 									$toknow['dayhour'] = date("Y-m-d H:i:s", time());
 									$this->bd->updateToknow(
 													$toknow['id'], 
@@ -365,11 +452,65 @@ class SecureAPI {
 													$toknow['quick'], 
 													$toknow['crypto']
 													);
+									array_push($toknowsResponse, $toknow);
+								}
+								else {
+									// cas où on tente d'importer un toknow personnel pour mettre à jour une version qui est XX programmée pour etre effacée
+									// récupération d'un vieux toknow
+									$this->log->logDebug("reprise et récupération d'un vieux toknow");
+									$toknow['dayhour'] = date("Y-m-d H:i:s", time());
+									$toknow['version'] = $this->incrementVersion($toknow['version']);
+									$this->bd->updateToknow(
+													$toknow['id'], 
+													$toknow['dayhour'], 
+													$toknow['version'], 
+													$toknow['title'], 
+													$toknow['description'], 
+													$toknow['done'], 
+													$toknow['tag'], 
+													$toknow['color'], 
+													$toknow['end'], 
+													$toknow['priority'], 
+													$toknow['quick'], 
+													$toknow['crypto']
+													);
+									array_push($toknowsResponse, $toknow);
+								}
+							}
+							else {
+								// nothing to do, because the newest is already in database
+								// but may be the incoming toknow has highest version number ?
+								// then it can be a conflict
+								if ($existsToknow->version < $toknow['version']) {
+									$toknow['title'] = $toknow['title']." [CONFLICT]".
+									$toknow['description'] = $toknow['description']
+																." [CONFLICT] "
+																.$existsToknow->title." "
+																.$existsToknow->description;
+									$toknow['dayhour'] = date("Y-m-d H:i:s", time());
+									$toknow['version'] = $this->incrementVersion($toknow['version']);
+									$this->bd->updateToknow(
+													$toknow['id'], 
+													$toknow['dayhour'], 
+													$toknow['version'], 
+													$toknow['title'], 
+													$toknow['description'], 
+													$toknow['done'], 
+													$toknow['tag'], 
+													$toknow['color'], 
+													$toknow['end'], 
+													$toknow['priority'], 
+													$toknow['quick'], 
+													$toknow['crypto']
+													);
+									array_push($toknowsResponse, $toknow);
 								}
 							}
 						}
 						else {
 							// simple case, just insert a new toknow
+							$toknow['dayhour'] = date("Y-m-d H:i:s", time());
+							$toknow['version'] = $this->incrementVersion($toknow['version']);
 							$this->bd->insertToknow(
 													$toknow['id'], 
 													$toknow['dayhour'], 
@@ -384,6 +525,7 @@ class SecureAPI {
 													$toknow['quick'], 
 													$toknow['crypto']
 													);
+							array_push($toknowsResponse, $toknow);
 						}
 					}
 					

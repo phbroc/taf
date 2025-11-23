@@ -53,6 +53,7 @@ class TagListComponent implements OnInit, DoCheck {
           (event.toString() == "put done") ||
           (event.toString() == "local init done")) {
         if ((tag != null) && (page != null)) {
+          _langStr();
           _getToknows();
         }
       }
@@ -95,6 +96,12 @@ class TagListComponent implements OnInit, DoCheck {
   // use OnActivate when component have to get params from the router
   @override
   void ngOnInit() async {
+    _langStr();
+    // problem of life cycle, when OnInit the biding with the parent component is not ready
+    // print("OnInit tagList ... ${tag?.name}");
+  }
+
+  void _langStr() async {
     langId = await Commons.getLang();
     deleteStr = config.delete[langId];
     editStr = config.edit[langId];
@@ -102,8 +109,6 @@ class TagListComponent implements OnInit, DoCheck {
     sharedStr = config.shared[langId];
     quickStr = config.quick[langId];
     shareUser = config.shareUser;
-    // problem of life cycle, when OnInit the biding with the parent component is not ready
-    // print("OnInit tagList ... ${tag?.name}");
   }
 
   // beware this method is often called, to prevent from looping there is the _initialized flag !
